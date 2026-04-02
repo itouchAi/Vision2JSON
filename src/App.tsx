@@ -406,9 +406,14 @@ export default function App() {
         setResult(parsed);
         setInitialResult(parsed);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Analysis failed:", err);
-      setError("Görsel analiz edilirken bir hata oluştu. Lütfen tekrar deneyin.");
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("429") || errMsg.includes("quota")) {
+        setError("API kotanız doldu. Lütfen Google AI Studio faturalandırma detaylarınızı kontrol edin.");
+      } else {
+        setError("Görsel analiz edilirken bir hata oluştu. Lütfen tekrar deneyin.");
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -467,9 +472,14 @@ export default function App() {
           setError("Model yanıtı geçerli bir JSON formatında değil veya çok uzun olduğu için kesildi.");
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upgrade failed:", err);
-      setError("Hyper-realistik dönüşüm sırasında bir hata oluştu.");
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("429") || errMsg.includes("quota")) {
+        setError("API kotanız doldu. Lütfen Google AI Studio faturalandırma detaylarınızı kontrol edin.");
+      } else {
+        setError("Hyper-realistik dönüşüm sırasında bir hata oluştu.");
+      }
     } finally {
       setIsUpgrading(false);
     }
@@ -597,8 +607,13 @@ export default function App() {
             break;
           }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(`Batch generation failed at index ${i}:`, err);
+        const errMsg = err?.message || String(err);
+        if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("429") || errMsg.includes("quota")) {
+          setError("API kotanız doldu. Lütfen Google AI Studio faturalandırma detaylarınızı kontrol edin.");
+          break; // Stop the batch process if quota is exceeded
+        }
       }
     }
 
@@ -716,9 +731,14 @@ export default function App() {
           break;
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Studio generation failed:", err);
-      setError("Influencer varyasyonu üretilirken bir hata oluştu.");
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("429") || errMsg.includes("quota")) {
+        setError("API kotanız doldu. Lütfen Google AI Studio faturalandırma detaylarınızı kontrol edin.");
+      } else {
+        setError("Influencer varyasyonu üretilirken bir hata oluştu.");
+      }
     } finally {
       setIsStudioGenerating(false);
     }
@@ -772,9 +792,14 @@ export default function App() {
           break;
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Image generation failed:", err);
-      setError("Görsel üretilirken bir hata oluştu.");
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("429") || errMsg.includes("quota")) {
+        setError("API kotanız doldu. Lütfen Google AI Studio faturalandırma detaylarınızı kontrol edin.");
+      } else {
+        setError("Görsel üretilirken bir hata oluştu.");
+      }
     } finally {
       setIsGeneratingImage(false);
     }
@@ -815,9 +840,14 @@ export default function App() {
         setResult(JSON.parse(text));
         setSelectedSuggestions({}); // Clear selections after revision
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Revision failed:", err);
-      setError("Revizyon sırasında bir hata oluştu.");
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("429") || errMsg.includes("quota")) {
+        setError("API kotanız doldu. Lütfen Google AI Studio faturalandırma detaylarınızı kontrol edin.");
+      } else {
+        setError("Revizyon sırasında bir hata oluştu.");
+      }
     } finally {
       setIsRevising(false);
     }
@@ -883,10 +913,10 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className="grid lg:grid-cols-2 gap-12 items-stretch">
           
           {/* Left Column: Upload & Preview */}
-          <div className="space-y-8">
+          <div className="flex flex-col h-full space-y-8">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tight text-[#2d3748]">Görsel Analiz</h2>
               <p className="text-[#718096] text-sm max-w-md">
@@ -902,7 +932,7 @@ export default function App() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   {...getRootProps()}
                   className={cn(
-                    "relative group cursor-pointer aspect-square rounded-3xl transition-all duration-300 flex flex-col items-center justify-center gap-4 overflow-hidden",
+                    "relative group cursor-pointer h-[600px] rounded-3xl transition-all duration-300 flex flex-col items-center justify-center gap-4 overflow-hidden",
                     isDragActive 
                       ? "neu-pressed border-2 border-blue-400" 
                       : "neu-flat hover:neu-pressed"
@@ -921,7 +951,7 @@ export default function App() {
                 <MotionDiv
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="relative aspect-square rounded-3xl overflow-hidden neu-flat p-2"
+                  className="relative h-[600px] rounded-3xl overflow-hidden neu-flat p-2"
                 >
                   <img 
                     src={image} 
@@ -969,29 +999,27 @@ export default function App() {
           </div>
 
           {/* Right Column: Results */}
-          <div className="space-y-6 lg:min-h-[600px]">
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col h-full space-y-6">
+            <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
                   <Code className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-[#2d3748] text-xl">JSON Çıktısı</h3>
               </div>
-              <div className="flex items-center gap-3">
-                {result && (
+              {result && (
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 w-full">
                   <button
                     onClick={() => setIsStudioOpen(true)}
-                    className="px-4 h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center gap-2 text-sm font-bold"
+                    className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold w-full"
                   >
                     <User className="w-4 h-4" />
                     Influencer Studio
                   </button>
-                )}
-                {result && (
                   <button
                     onClick={generateImage}
                     disabled={isGeneratingImage || isAnalyzing || isUpgrading}
-                    className="p-2 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-lg transition-all flex items-center gap-2 text-xs font-bold disabled:opacity-50"
+                    className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold disabled:opacity-50 w-full"
                   >
                     {isGeneratingImage ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -1000,34 +1028,30 @@ export default function App() {
                     )}
                     {isGeneratingImage ? 'Üretiliyor...' : 'Görsel Üret'}
                   </button>
-                )}
-                {result && (
                   <button
                     onClick={upgradeToHyperRealistic}
                     disabled={isUpgrading || isAnalyzing}
-                    className="p-2 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed rounded-lg transition-all flex items-center gap-2 text-xs font-bold disabled:opacity-50"
+                    className="h-10 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold disabled:opacity-50 w-full"
                   >
                     {isUpgrading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Sparkles className="w-4 h-4" />
                     )}
-                    {isUpgrading ? 'Dönüştürülüyor...' : 'Hyper-Realistik Yap'}
+                    {isUpgrading ? 'Dönüştürül...' : 'Hyper-Realistik Yap'}
                   </button>
-                )}
-                {result && (
                   <button
                     onClick={copyToClipboard}
-                    className="p-2 neu-flat text-[#4a5568] hover:text-blue-500 active:neu-pressed rounded-lg transition-all flex items-center gap-2 text-xs font-bold"
+                    className="h-10 neu-flat text-[#4a5568] hover:text-blue-500 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold w-full"
                   >
                     {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                     {copied ? 'Kopyalandı' : 'Kopyala'}
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
-            <div className="relative min-h-[500px] rounded-3xl neu-flat overflow-hidden flex flex-col">
+            <div className="relative h-[600px] rounded-3xl neu-flat overflow-hidden flex flex-col">
               {!result && !isAnalyzing && (
                 <div className="flex-1 flex flex-col items-center justify-center text-[#718096] p-12 text-center">
                   <div className="w-12 h-12 rounded-full neu-pressed flex items-center justify-center mb-4 text-orange-500">
@@ -1053,7 +1077,7 @@ export default function App() {
               )}
 
               {result && (
-                <div ref={resultsContainerRef} className="flex-1 overflow-auto flex flex-col">
+                <div ref={resultsContainerRef} className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
                   <MotionDiv 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
