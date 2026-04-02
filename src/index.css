@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  background-color: #e6e9f0;
+  color: #4a5568;
+}
+
+@layer utilities {
+  .neu-base {
+    background: #e6e9f0;
+  }
+  
+  .neu-flat {
+    background: #e6e9f0;
+    box-shadow: 8px 8px 16px #c8cbd2, -8px -8px 16px #ffffff;
+  }
+  
+  .neu-pressed {
+    background: #e6e9f0;
+    box-shadow: inset 6px 6px 12px #c8cbd2, inset -6px -6px 12px #ffffff;
+  }
+  
+  .neu-dark {
+    background: #1a1a2e;
+    box-shadow: 8px 8px 16px #121220, -8px -8px 16px #22223c;
+  }
+  
+  .neu-dark-pressed {
+    background: #1a1a2e;
+    box-shadow: inset 6px 6px 12px #121220, inset -6px -6px 12px #22223c;
+  }
+  
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  .glass-dark {
+    background: rgba(26, 26, 46, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}

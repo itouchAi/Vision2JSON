@@ -1,0 +1,5 @@
+{
+  "name": "Vision2JSON - V4",
+  "description": "Analyze images and convert them into detailed JSON prompts covering camera, lighting, clothing, pose, and more.",
+  "requestFramePermissions": []
+}
