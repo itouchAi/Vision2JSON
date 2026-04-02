@@ -113,6 +113,9 @@ const TRANSLATIONS = {
     retry: "Yeniden Dene",
     downloadAll: "Tümünü İndir",
     action: "Aksiyon",
+    generatedImageTitle: "Üretilen Görsel",
+    generatedImageDesc: "Analiz edilen prompt temel alınarak oluşturuldu.",
+    close: "Kapat",
     suggestionLabels: {
       cameraAngle: "Kamera Açısı",
       lighting: "Işıklandırma",
@@ -204,6 +207,9 @@ const TRANSLATIONS = {
     retry: "Retry",
     downloadAll: "Download All",
     action: "Action",
+    generatedImageTitle: "Generated Image",
+    generatedImageDesc: "Created based on the analyzed prompt.",
+    close: "Close",
     suggestionLabels: {
       cameraAngle: "Camera Angle",
       lighting: "Lighting",
@@ -1505,19 +1511,19 @@ export default function App() {
 
       <AnimatePresenceComponent>
         {generatedImageUrl && isModalOpen && (
-          <GeneratedImageModal url={generatedImageUrl} onClose={() => setIsModalOpen(false)} />
+          <GeneratedImageModal url={generatedImageUrl} onClose={() => setIsModalOpen(false)} t={t} />
         )}
       </AnimatePresenceComponent>
 
       {/* Influencer Studio Modal */}
       <AnimatePresenceComponent>
         {isStudioOpen && result && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#e6e9f0]/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#e6e9f0]/80 dark:bg-[#1a202c]/80 backdrop-blur-md">
             <MotionDiv
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="neu-base w-full max-w-5xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col shadow-[20px_20px_60px_#c8cbd2,-20px_-20px_60px_#ffffff]"
+              className="neu-base w-full max-w-5xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col shadow-[20px_20px_60px_#c8cbd2,-20px_-20px_60px_#ffffff] dark:shadow-[10px_10px_30px_#121418,-10px_-10px_30px_#2a2e39]"
             >
               {/* Modal Header */}
               <div className="p-6 neu-flat flex items-center justify-between z-10">
@@ -1539,7 +1545,7 @@ export default function App() {
               </div>
 
               {/* Modal Content */}
-              <div className="flex-1 overflow-auto p-8 grid lg:grid-cols-5 gap-8 bg-[#e6e9f0]">
+              <div className="flex-1 overflow-auto p-4 sm:p-8 grid lg:grid-cols-5 gap-8 bg-[#e6e9f0] dark:bg-[#1a202c]">
                 {/* Controls - 2 Columns */}
                 <div className="lg:col-span-2 space-y-8">
                   {/* Generation Method Selector */}
@@ -1942,45 +1948,46 @@ function StudioControl({ label, value, options, onChange }: { label: string, val
   );
 }
 
-function GeneratedImageModal({ url, onClose }: { url: string, onClose: () => void }) {
+function GeneratedImageModal({ url, onClose, t }: { url: string, onClose: () => void, t: any }) {
   return (
     <MotionDiv
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-12 bg-[#e6e9f0]/90 backdrop-blur-md cursor-zoom-out"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-[#e6e9f0]/90 dark:bg-[#1a202c]/90 backdrop-blur-md cursor-zoom-out"
     >
       <MotionDiv
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        className="relative max-w-5xl w-full aspect-square neu-base rounded-2xl sm:rounded-3xl overflow-hidden shadow-[20px_20px_60px_#c8cbd2,-20px_-20px_60px_#ffffff] cursor-default p-4"
+        className="relative flex flex-col neu-base rounded-2xl sm:rounded-3xl overflow-hidden shadow-[20px_20px_60px_#c8cbd2,-20px_-20px_60px_#ffffff] dark:shadow-[10px_10px_30px_#121418,-10px_-10px_30px_#2a2e39] cursor-default p-2 sm:p-4"
+        style={{ width: 'min(90vw, 90vh)', height: 'min(90vw, 90vh)' }}
       >
-        <img src={url} alt="Generated" className="w-full h-full object-contain rounded-2xl" referrerPolicy="no-referrer" />
+        <img src={url} alt="Generated" className="w-full h-full object-contain rounded-xl sm:rounded-2xl" referrerPolicy="no-referrer" />
         
         {/* Top Right Close Button */}
         <button 
           onClick={onClose}
-          className="absolute top-8 right-8 sm:top-12 sm:right-12 w-10 h-10 sm:w-14 sm:h-14 neu-flat text-red-500 rounded-full flex items-center justify-center hover:text-red-600 active:neu-pressed transition-all z-50"
-          title="Kapat"
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 neu-flat text-red-500 rounded-full flex items-center justify-center hover:text-red-600 active:neu-pressed transition-all z-50"
+          title={t.close}
         >
-          <X className="w-6 h-6 sm:w-8 sm:h-8" />
+          <X className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
 
         {/* Bottom Info Bar */}
-        <div className="absolute bottom-4 left-4 right-4 p-6 sm:p-8 glass-panel rounded-2xl">
-          <div className="flex items-end justify-between gap-4">
+        <div className="absolute bottom-4 left-4 right-4 p-4 sm:p-6 glass-panel rounded-xl sm:rounded-2xl">
+          <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
-              <p className="text-[#2d3748] font-bold text-xl sm:text-2xl tracking-tight">Üretilen Görsel</p>
-              <p className="text-[#718096] text-sm sm:text-base max-w-md font-medium">Analiz edilen prompt temel alınarak oluşturuldu.</p>
+              <p className="text-[#2d3748] dark:text-[#f8fafc] font-bold text-lg sm:text-xl tracking-tight">{t.generatedImageTitle}</p>
+              <p className="text-[#718096] dark:text-[#94a3b8] text-xs sm:text-sm max-w-md font-medium hidden sm:block">{t.generatedImageDesc}</p>
             </div>
             <button
               onClick={onClose}
-              className="px-6 py-3 neu-flat text-[#4a5568] hover:text-red-500 active:neu-pressed rounded-xl text-sm font-bold transition-all hidden sm:block"
+              className="px-4 py-2 sm:px-6 sm:py-3 neu-flat text-[#4a5568] dark:text-[#94a3b8] hover:text-red-500 dark:hover:text-red-400 active:neu-pressed rounded-xl text-xs sm:text-sm font-bold transition-all"
             >
-              Kapat
+              {t.close}
             </button>
           </div>
         </div>
