@@ -4,36 +4,68 @@
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-bg-base: var(--bg-base);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+}
+
+:root {
+  --bg-base: #e6e9f0;
+  --text-main: #2d3748;
+  --text-muted: #718096;
+  --shadow-light: #ffffff;
+  --shadow-dark: #c8cbd2;
+  --scroll-thumb: #c8cbd2;
+  --scroll-thumb-hover: #a0a4b0;
+}
+
+.dark-theme {
+  /* Lighter, softer dark mode (Slate/Gray-Blue) */
+  --bg-base: #1e2128;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --shadow-light: #2a2e39;
+  --shadow-dark: #121418;
+  --scroll-thumb: #2a2e39;
+  --scroll-thumb-hover: #3b404d;
 }
 
 body {
-  background-color: #e6e9f0;
-  color: #4a5568;
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 @layer utilities {
   .neu-base {
-    background: #e6e9f0;
+    background: var(--bg-base);
   }
   
   .neu-flat {
-    background: #e6e9f0;
-    box-shadow: 8px 8px 16px #c8cbd2, -8px -8px 16px #ffffff;
+    background: var(--bg-base);
+    box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
   }
   
   .neu-pressed {
-    background: #e6e9f0;
-    box-shadow: inset 6px 6px 12px #c8cbd2, inset -6px -6px 12px #ffffff;
+    background: var(--bg-base);
+    box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  /* Glossy effect for dark mode - adjusted for lighter dark theme */
+  .dark-theme .neu-flat {
+    background: linear-gradient(145deg, #20232b, #1b1e24);
+    box-shadow: 8px 8px 16px #121418, -8px -8px 16px #2a2e39;
+    border: 1px solid rgba(255, 255, 255, 0.03);
   }
   
-  .neu-dark {
-    background: #1a1a2e;
-    box-shadow: 8px 8px 16px #121220, -8px -8px 16px #22223c;
-  }
-  
-  .neu-dark-pressed {
-    background: #1a1a2e;
-    box-shadow: inset 6px 6px 12px #121220, inset -6px -6px 12px #22223c;
+  .dark-theme .neu-pressed {
+    background: #1b1e24;
+    box-shadow: inset 6px 6px 12px #121418, inset -6px -6px 12px #2a2e39;
+    border: 1px solid rgba(0, 0, 0, 0.2);
   }
   
   .glass-panel {
@@ -56,10 +88,10 @@ body {
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #c8cbd2;
+    background: var(--scroll-thumb);
     border-radius: 10px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #a0a4b0;
+    background: var(--scroll-thumb-hover);
   }
 }

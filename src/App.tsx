@@ -10,6 +10,7 @@ import {
   RefreshCw, 
   Camera, 
   Sun, 
+  Moon,
   User, 
   Layout, 
   Maximize2,
@@ -28,6 +29,191 @@ import { motion, AnimatePresence } from 'motion/react';
 const MotionDiv = motion.div as any;
 const AnimatePresenceComponent = AnimatePresence as any;
 import { cn } from './lib/utils';
+
+const TRANSLATIONS = {
+  TR: {
+    docs: "Dokümantasyon",
+    title: "Görsel Analiz",
+    subtitle: "Yüklediğiniz görseli profesyonel bir JSON promptuna dönüştürün. Kamera, ışık, giyim ve kompozisyon detaylarını anında alın.",
+    dragDrop: "Görseli buraya sürükleyin",
+    orClick: "veya tıklayarak seçin",
+    analyzing: "Analiz Ediliyor...",
+    analyze: "Analiz Et",
+    jsonOutput: "JSON Çıktısı",
+    generating: "Üretiliyor...",
+    generate: "Görsel Üret",
+    upgrading: "Dönüştürülüyor...",
+    upgrade: "Hyper-Realistik Yap",
+    copied: "Kopyalandı",
+    copy: "Kopyala",
+    resultsPlaceholder: "Analiz sonuçları burada görünecek.",
+    processing: "Görsel İşleniyor",
+    aiDetails: "Yapay zeka detayları yakalıyor...",
+    suggestions: "Öneriler",
+    clothingColor: "Kıyafet Rengi",
+    apply: "Uygula",
+    cancel: "İptal",
+    studioTitle: "Influencer Studio",
+    studioMode: "Stüdyo Modu",
+    single: "Tekli Üretim",
+    batch: "Çoklu Üretim (Batch)",
+    genMethod: "Üretim Yöntemi",
+    reference: "Referans Görsel",
+    textPrompt: "Metin Promptu",
+    batchMode: "Batch Modu",
+    template: "Şablon Seçimi",
+    manual: "Manuel Seçimler",
+    random: "Rastgele",
+    custom: "Özel",
+    studioPromptLabel: "Stüdyo Promptu (İsteğe Bağlı)",
+    studioPromptPlaceholder: "Örn: Neon ışıklı cyberpunk ortam...",
+    studioSettings: "Stüdyo Ayarları",
+    generateWithPrompt: "Prompt ile Üret",
+    close: "Kapat",
+    download: "İndir",
+    regenerate: "Görseli Yeniden Üret",
+    generatingNew: "Yeni Görsel Üretiliyor...",
+    samePose: "Aynı poz",
+    sameEnv: "Aynı ortam",
+    sameOutfit: "Aynı kıyafet",
+    sameCamera: "Aynı açı",
+    sameLight: "Aynı ışık",
+    still: "Hareketsiz",
+    diffPose: "Farklı poz",
+    diffEnv: "Farklı ortam",
+    diffOutfit: "Farklı kıyafet",
+    diffCamera: "Farklı açı",
+    diffLight: "Farklı ışık",
+    motion: "Hareketli",
+    revising: "Revize Ediliyor...",
+    revisePrompt: "Promptu Revize Et",
+    reset: "Sıfırla",
+    goUp: "Yukarı Git",
+    angle: "Açı",
+    light: "Işık",
+    ethnicity: "Etnisite",
+    style: "Stil",
+    enlarge: "Büyüt",
+    generatedImageBadge: "Üretilen Görsel",
+    footerPowered: "Gemini 3 Flash Vision Powered",
+    footerRights: "© 2026 Vision2JSON. Tüm hakları saklıdır.",
+    createPrompt: "Prompt Oluştur",
+    generatedDNAPrompt: "Oluşturulan DNA Promptu (Düzenlenebilir)",
+    clear: "Temizle",
+    generatingImage: "Görsel Üretiliyor...",
+    generateImageBtn: "Görseli Üret",
+    generateVariations: "4 Varyasyon Üret",
+    generatingVariation: "Üretiliyor...",
+    originalReference: "Orijinal Referans",
+    dnaSource: "DNA Kaynağı",
+    newVariation: "Yeni Varyasyon",
+    studioPreviewPlaceholder: "Prompt oluşturun ve varyasyonu burada görün.",
+    batchVariations: "Toplu Varyasyonlar",
+    batchResults: "Toplu Üretim Sonuçları",
+    retry: "Yeniden Dene",
+    downloadAll: "Tümünü İndir",
+    action: "Aksiyon",
+    suggestionLabels: {
+      cameraAngle: "Kamera Açısı",
+      lighting: "Işıklandırma",
+      expression: "Yüz İfadesi",
+      pose: "Poz",
+      clothing: "Kıyafet Tarzı",
+      background: "Arka Plan"
+    }
+  },
+  ENG: {
+    docs: "Documentation",
+    title: "Image Analysis",
+    subtitle: "Convert your uploaded image into a professional JSON prompt. Instantly get camera, lighting, clothing, and composition details.",
+    dragDrop: "Drag image here",
+    orClick: "or click to select",
+    analyzing: "Analyzing...",
+    analyze: "Analyze",
+    jsonOutput: "JSON Output",
+    generating: "Generating...",
+    generate: "Generate Image",
+    upgrading: "Upgrading...",
+    upgrade: "Make Hyper-Realistic",
+    copied: "Copied",
+    copy: "Copy",
+    resultsPlaceholder: "Analysis results will appear here.",
+    processing: "Processing Image",
+    aiDetails: "AI is capturing details...",
+    suggestions: "Suggestions",
+    clothingColor: "Clothing Color",
+    apply: "Apply",
+    cancel: "Cancel",
+    studioTitle: "Influencer Studio",
+    studioMode: "Studio Mode",
+    single: "Single Generation",
+    batch: "Batch Generation",
+    genMethod: "Generation Method",
+    reference: "Reference Image",
+    textPrompt: "Text Prompt",
+    batchMode: "Batch Mode",
+    template: "Template Selection",
+    manual: "Manual Selections",
+    random: "Random",
+    custom: "Custom",
+    studioPromptLabel: "Studio Prompt (Optional)",
+    studioPromptPlaceholder: "E.g., Neon lit cyberpunk environment...",
+    studioSettings: "Studio Settings",
+    generateWithPrompt: "Generate with Prompt",
+    close: "Close",
+    download: "Download",
+    regenerate: "Regenerate Image",
+    generatingNew: "Generating New Image...",
+    samePose: "Same pose",
+    sameEnv: "Same environment",
+    sameOutfit: "Same outfit",
+    sameCamera: "Same angle",
+    sameLight: "Same lighting",
+    still: "Still",
+    diffPose: "Different pose",
+    diffEnv: "Different environment",
+    diffOutfit: "Different outfit",
+    diffCamera: "Different angle",
+    diffLight: "Different lighting",
+    motion: "In motion",
+    revising: "Revising...",
+    revisePrompt: "Revise Prompt",
+    reset: "Reset",
+    goUp: "Go Up",
+    angle: "Angle",
+    light: "Light",
+    ethnicity: "Ethnicity",
+    style: "Style",
+    enlarge: "Enlarge",
+    generatedImageBadge: "Generated Image",
+    footerPowered: "Powered by Gemini 3 Flash Vision",
+    footerRights: "© 2026 Vision2JSON. All rights reserved.",
+    createPrompt: "Create Prompt",
+    generatedDNAPrompt: "Generated DNA Prompt (Editable)",
+    clear: "Clear",
+    generatingImage: "Generating Image...",
+    generateImageBtn: "Generate Image",
+    generateVariations: "Generate 4 Variations",
+    generatingVariation: "Generating...",
+    originalReference: "Original Reference",
+    dnaSource: "DNA Source",
+    newVariation: "New Variation",
+    studioPreviewPlaceholder: "Create a prompt and see the variation here.",
+    batchVariations: "Batch Variations",
+    batchResults: "Batch Generation Results",
+    retry: "Retry",
+    downloadAll: "Download All",
+    action: "Action",
+    suggestionLabels: {
+      cameraAngle: "Camera Angle",
+      lighting: "Lighting",
+      expression: "Facial Expression",
+      pose: "Pose",
+      clothing: "Clothing Style",
+      background: "Background"
+    }
+  }
+};
 
 // Initialize Gemini API
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
@@ -334,9 +520,24 @@ export default function App() {
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [language, setLanguage] = useState<'TR' | 'ENG'>('TR');
+
+  React.useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+    }
+  }, [isDarkMode]);
 
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const clothingColorRef = useRef<HTMLInputElement>(null);
+
+  const t = TRANSLATIONS[language];
+
+  // We need to update SUGGESTION_LABELS dynamically based on language
+  const currentSuggestionLabels = t.suggestionLabels;
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -906,8 +1107,48 @@ export default function App() {
               target="_blank" 
               className="text-sm font-medium text-[#718096] hover:text-blue-500 transition-colors"
             >
-              Documentation
+              {t.docs}
             </a>
+            
+            <div className="h-6 w-px bg-[#c8cbd2] dark:bg-[#1f222a] mx-2"></div>
+            
+            <div className="flex items-center gap-3">
+              {/* Language Toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setLanguage('TR')}
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                    language === 'TR' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
+                  )}
+                >
+                  TR
+                </button>
+                <button
+                  onClick={() => setLanguage('ENG')}
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                    language === 'ENG' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
+                  )}
+                >
+                  ENG
+                </button>
+              </div>
+
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all relative overflow-hidden"
+              >
+                {/* Corner lines for "shirt" style */}
+                <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-current opacity-50 rounded-tl-sm"></div>
+                <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-current opacity-50 rounded-tr-sm"></div>
+                <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-current opacity-50 rounded-bl-sm"></div>
+                <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-current opacity-50 rounded-br-sm"></div>
+                
+                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -918,9 +1159,9 @@ export default function App() {
           {/* Left Column: Upload & Preview */}
           <div className="flex flex-col h-full space-y-8">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tight text-[#2d3748]">Görsel Analiz</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-[#2d3748]">{t.title}</h2>
               <p className="text-[#718096] text-sm max-w-md">
-                Yüklediğiniz görseli profesyonel bir JSON promptuna dönüştürün. Kamera, ışık, giyim ve kompozisyon detaylarını anında alın.
+                {t.subtitle}
               </p>
             </div>
 
@@ -943,8 +1184,8 @@ export default function App() {
                     <Upload className="w-8 h-8" />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-bold text-[#4a5568]">Görseli buraya sürükleyin</p>
-                    <p className="text-xs text-[#718096] mt-1">veya tıklayarak seçin</p>
+                    <p className="text-sm font-bold text-[#4a5568]">{t.dragDrop}</p>
+                    <p className="text-xs text-[#718096] mt-1">{t.orClick}</p>
                   </div>
                 </MotionDiv>
               ) : (
@@ -969,12 +1210,12 @@ export default function App() {
                       {isAnalyzing ? (
                         <>
                           <Loader2 className="w-5 h-5 animate-spin" />
-                          Analiz Ediliyor...
+                          {t.analyzing}
                         </>
                       ) : (
                         <>
                           <RefreshCw className="w-5 h-5" />
-                          Analiz Et
+                          {t.analyze}
                         </>
                       )}
                     </button>
@@ -1005,7 +1246,7 @@ export default function App() {
                 <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
                   <Code className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-[#2d3748] text-xl">JSON Çıktısı</h3>
+                <h3 className="font-bold text-[#2d3748] text-xl">{t.jsonOutput}</h3>
               </div>
               {result && (
                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 w-full">
@@ -1014,7 +1255,7 @@ export default function App() {
                     className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold w-full"
                   >
                     <User className="w-4 h-4" />
-                    Influencer Studio
+                    {t.studioTitle}
                   </button>
                   <button
                     onClick={generateImage}
@@ -1026,7 +1267,7 @@ export default function App() {
                     ) : (
                       <Wand2 className="w-4 h-4" />
                     )}
-                    {isGeneratingImage ? 'Üretiliyor...' : 'Görsel Üret'}
+                    {isGeneratingImage ? t.generating : t.generate}
                   </button>
                   <button
                     onClick={upgradeToHyperRealistic}
@@ -1038,14 +1279,14 @@ export default function App() {
                     ) : (
                       <Sparkles className="w-4 h-4" />
                     )}
-                    {isUpgrading ? 'Dönüştürül...' : 'Hyper-Realistik Yap'}
+                    {isUpgrading ? t.upgrading : t.upgrade}
                   </button>
                   <button
                     onClick={copyToClipboard}
                     className="h-10 neu-flat text-[#4a5568] hover:text-blue-500 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold w-full"
                   >
                     {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                    {copied ? 'Kopyalandı' : 'Kopyala'}
+                    {copied ? t.copied : t.copy}
                   </button>
                 </div>
               )}
@@ -1057,7 +1298,7 @@ export default function App() {
                   <div className="w-12 h-12 rounded-full neu-pressed flex items-center justify-center mb-4 text-orange-500">
                     <ImageIcon className="w-6 h-6" />
                   </div>
-                  <p className="text-sm font-medium">Analiz sonuçları burada görünecek.</p>
+                  <p className="text-sm font-medium">{t.resultsPlaceholder}</p>
                 </div>
               )}
 
@@ -1070,8 +1311,8 @@ export default function App() {
                     </div>
                   </div>
                   <div className="text-center space-y-2">
-                    <p className="text-sm font-bold text-[#2d3748]">Görsel İşleniyor</p>
-                    <p className="text-xs text-[#718096]">Yapay zeka detayları yakalıyor...</p>
+                    <p className="text-sm font-bold text-[#2d3748]">{t.processing}</p>
+                    <p className="text-xs text-[#718096]">{t.aiDetails}</p>
                   </div>
                 </div>
               )}
@@ -1092,14 +1333,14 @@ export default function App() {
                   <div className="p-6 neu-pressed space-y-6 rounded-b-3xl">
                     <div className="flex items-center gap-2">
                       <Wand2 className="w-4 h-4 text-blue-500" />
-                      <h4 className="text-xs font-bold text-[#2d3748] uppercase tracking-wider">Öneriler</h4>
+                      <h4 className="text-xs font-bold text-[#2d3748] uppercase tracking-wider">{t.suggestions}</h4>
                     </div>
                     
                     <div className="grid gap-4">
                       {Object.entries(result.suggestions).map(([key, options]) => (
                         <div key={key} className="space-y-2">
                           <span className="text-[10px] text-[#718096] font-bold uppercase tracking-widest">
-                            {SUGGESTION_LABELS[key] || key}
+                            {currentSuggestionLabels[key as keyof typeof currentSuggestionLabels] || key}
                           </span>
                           <div className="flex flex-wrap gap-2">
                             {options.map((option) => (
@@ -1172,7 +1413,7 @@ export default function App() {
                         ) : (
                           <RefreshCw className="w-4 h-4" />
                         )}
-                        {isRevising ? 'Revize Ediliyor...' : 'Promptu Revize Et'}
+                        {isRevising ? t.revising : t.revisePrompt}
                       </button>
                     )}
 
@@ -1182,14 +1423,14 @@ export default function App() {
                         className="h-10 neu-flat hover:text-red-500 active:neu-pressed text-[#4a5568] text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
                       >
                         <RotateCcw className="w-4 h-4" />
-                        Sıfırla
+                        {t.reset}
                       </button>
                       <button
                         onClick={scrollToTop}
                         className="h-10 neu-flat hover:text-blue-500 active:neu-pressed text-[#4a5568] text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
                       >
                         <ArrowUp className="w-4 h-4" />
-                        Yukarı Git
+                        {t.goUp}
                       </button>
                     </div>
                   </div>
@@ -1199,10 +1440,10 @@ export default function App() {
               {/* Quick Stats Overlay */}
               {result && (
                 <div className="p-4 neu-flat rounded-b-3xl grid grid-cols-2 sm:grid-cols-4 gap-4 mt-1">
-                  <StatItem icon={<Camera className="w-3 h-3 text-blue-500" />} label="Açı" value={result.camera.angle} />
-                  <StatItem icon={<Sun className="w-3 h-3 text-orange-500" />} label="Işık" value={result.lighting.quality} />
-                  <StatItem icon={<User className="w-3 h-3 text-green-500" />} label="Etnisite" value={result.subject.ethnicity} />
-                  <StatItem icon={<Layout className="w-3 h-3 text-red-500" />} label="Stil" value={result.technical.style} />
+                  <StatItem icon={<Camera className="w-3 h-3 text-blue-500" />} label={t.angle} value={result.camera.angle} />
+                  <StatItem icon={<Sun className="w-3 h-3 text-orange-500" />} label={t.light} value={result.lighting.quality} />
+                  <StatItem icon={<User className="w-3 h-3 text-green-500" />} label={t.ethnicity} value={result.subject.ethnicity} />
+                  <StatItem icon={<Layout className="w-3 h-3 text-red-500" />} label={t.style} value={result.technical.style} />
                 </div>
               )}
             </div>
@@ -1229,7 +1470,7 @@ export default function App() {
                       className="flex-1 h-12 neu-flat text-blue-600 font-bold rounded-xl text-xs flex items-center justify-center gap-2 hover:text-blue-700 active:neu-pressed transition-all"
                     >
                       <Maximize2 className="w-4 h-4" />
-                      Büyüt
+                      {t.enlarge}
                     </button>
                     <button
                       onClick={() => setGeneratedImageUrl(null)}
@@ -1240,7 +1481,7 @@ export default function App() {
                   </div>
                   
                   <div className="absolute top-6 left-6 px-4 py-2 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] uppercase tracking-wider shadow-sm">
-                    Üretilen Görsel
+                    {t.generatedImageBadge}
                   </div>
                 </MotionDiv>
               )}
@@ -1254,10 +1495,10 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2 text-[#718096] font-bold text-sm">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-            Gemini 3 Flash Vision Powered
+            {t.footerPowered}
           </div>
           <div className="text-[#a0aec0] font-medium text-xs">
-            © 2026 Vision2JSON. Tüm hakları saklıdır.
+            {t.footerRights}
           </div>
         </div>
       </footer>
@@ -1285,7 +1526,7 @@ export default function App() {
                     <User className="w-6 h-6 text-green-500" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-[#2d3748]">Influencer Studio</h3>
+                    <h3 className="text-xl font-bold text-[#2d3748]">{t.studioTitle}</h3>
                     <p className="text-xs font-medium text-[#718096]">Karakter DNA'sını koruyarak yeni varyasyonlar üretin</p>
                   </div>
                 </div>
@@ -1305,7 +1546,7 @@ export default function App() {
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 px-1">
                       <ImageIcon className="w-4 h-4 text-orange-500" />
-                      <h3 className="text-sm font-bold text-[#2d3748]">Üretim Yöntemi</h3>
+                      <h3 className="text-sm font-bold text-[#2d3748]">{t.genMethod}</h3>
                     </div>
                     <div className="flex p-1.5 neu-pressed rounded-xl">
                       <button 
@@ -1315,7 +1556,7 @@ export default function App() {
                           generationMethod === 'reference' ? "neu-flat text-blue-600" : "text-[#718096] hover:text-[#4a5568]"
                         )}
                       >
-                        Referans Görsel İle
+                        {t.reference}
                       </button>
                       <button 
                         onClick={() => setGenerationMethod('text')}
@@ -1324,7 +1565,7 @@ export default function App() {
                           generationMethod === 'text' ? "neu-flat text-blue-600" : "text-[#718096] hover:text-[#4a5568]"
                         )}
                       >
-                        DNA (Metin) İle
+                        {t.textPrompt}
                       </button>
                     </div>
                   </div>
@@ -1338,7 +1579,7 @@ export default function App() {
                         studioMode === 'single' ? "neu-flat text-green-600" : "text-[#718096] hover:text-[#4a5568]"
                       )}
                     >
-                      Tekli Üretim
+                      {t.single}
                     </button>
                     <button 
                       onClick={() => setStudioMode('batch')}
@@ -1347,44 +1588,44 @@ export default function App() {
                         studioMode === 'batch' ? "neu-flat text-green-600" : "text-[#718096] hover:text-[#4a5568]"
                       )}
                     >
-                      Toplu Üretim (4 Poz)
+                      {t.batch}
                     </button>
                   </div>
 
                   {studioMode === 'single' ? (
                     <div className="grid grid-cols-2 gap-4">
                       <StudioControl 
-                        label="Poz" 
+                        label={t.suggestionLabels.pose} 
                         value={studioConfig.pose} 
                         options={STUDIO_OPTIONS.pose}
                         onChange={(v) => setStudioConfig(prev => ({ ...prev, pose: v }))}
                       />
                       <StudioControl 
-                        label="Ortam" 
+                        label={t.suggestionLabels.background} 
                         value={studioConfig.environment} 
                         options={STUDIO_OPTIONS.environment}
                         onChange={(v) => setStudioConfig(prev => ({ ...prev, environment: v }))}
                       />
                       <StudioControl 
-                        label="Kıyafet" 
+                        label={t.suggestionLabels.clothing} 
                         value={studioConfig.outfit} 
                         options={STUDIO_OPTIONS.outfit}
                         onChange={(v) => setStudioConfig(prev => ({ ...prev, outfit: v }))}
                       />
                       <StudioControl 
-                        label="Kamera" 
+                        label={t.suggestionLabels.cameraAngle} 
                         value={studioConfig.camera} 
                         options={STUDIO_OPTIONS.camera}
                         onChange={(v) => setStudioConfig(prev => ({ ...prev, camera: v }))}
                       />
                       <StudioControl 
-                        label="Işık" 
+                        label={t.suggestionLabels.lighting} 
                         value={studioConfig.lighting} 
                         options={STUDIO_OPTIONS.lighting}
                         onChange={(v) => setStudioConfig(prev => ({ ...prev, lighting: v }))}
                       />
                       <StudioControl 
-                        label="Aksiyon" 
+                        label={t.action} 
                         value={studioConfig.action} 
                         options={STUDIO_OPTIONS.action}
                         onChange={(v) => setStudioConfig(prev => ({ ...prev, action: v }))}
@@ -1401,7 +1642,7 @@ export default function App() {
                             batchMode === 'template' ? "neu-pressed text-blue-600" : "neu-flat text-[#718096] hover:text-[#4a5568]"
                           )}
                         >
-                          Hazır Şablon
+                          {t.template}
                         </button>
                         <button 
                           onClick={() => setBatchMode('manual')}
@@ -1410,7 +1651,7 @@ export default function App() {
                             batchMode === 'manual' ? "neu-pressed text-blue-600" : "neu-flat text-[#718096] hover:text-[#4a5568]"
                           )}
                         >
-                          Manuel Seçim
+                          {t.manual}
                         </button>
                       </div>
 
@@ -1468,19 +1709,19 @@ export default function App() {
                           ) : (
                             <Sparkles className="w-5 h-5" />
                           )}
-                          Prompt Oluştur
+                          {t.createPrompt}
                         </button>
 
                         {studioPrompt && (
                           <div className="space-y-3">
                             <div className="p-4 neu-pressed rounded-2xl space-y-2">
                               <div className="flex items-center justify-between">
-                                <p className="text-[10px] font-bold text-[#718096] uppercase tracking-widest">Oluşturulan DNA Promptu (Düzenlenebilir)</p>
+                                <p className="text-[10px] font-bold text-[#718096] uppercase tracking-widest">{t.generatedDNAPrompt}</p>
                                 <button 
                                   onClick={() => setStudioPrompt(null)}
                                   className="text-[10px] text-red-500 hover:text-red-600 font-bold uppercase"
                                 >
-                                  Temizle
+                                  {t.clear}
                                 </button>
                               </div>
                               <textarea
@@ -1499,7 +1740,7 @@ export default function App() {
                               ) : (
                                 <Zap className="w-6 h-6" />
                               )}
-                              {isStudioGenerating ? 'Görsel Üretiliyor...' : 'Görseli Üret'}
+                              {isStudioGenerating ? t.generatingImage : t.generateImageBtn}
                             </button>
                           </div>
                         )}
@@ -1515,7 +1756,7 @@ export default function App() {
                         ) : (
                           <Sparkles className="w-6 h-6" />
                         )}
-                        {isStudioGenerating ? `${currentBatchIndex + 1}/4 Üretiliyor...` : '4 Varyasyon Üret'}
+                        {isStudioGenerating ? `${currentBatchIndex + 1}/4 ${t.generatingVariation}` : t.generateVariations}
                       </button>
                     )}
                   </div>
@@ -1570,14 +1811,14 @@ export default function App() {
                               {isStudioGenerating ? (
                                 <div className="space-y-4">
                                   <div className="w-12 h-12 rounded-full border-4 border-[#e6e9f0] border-t-green-500 animate-spin mx-auto shadow-lg" />
-                                  <p className="text-xs text-[#718096] font-medium">Varyasyon oluşturuluyor...</p>
+                                  <p className="text-xs text-[#718096] font-medium">{t.generatingVariation}</p>
                                 </div>
                               ) : (
                                 <>
                                   <div className="w-16 h-16 rounded-2xl neu-pressed flex items-center justify-center mx-auto">
                                     <Sparkles className="w-8 h-8 text-[#a0aec0]" />
                                   </div>
-                                  <p className="text-xs text-[#718096] max-w-[180px] mx-auto font-medium">Prompt oluşturun ve varyasyonu burada görün.</p>
+                                  <p className="text-xs text-[#718096] max-w-[180px] mx-auto font-medium">{t.studioPreviewPlaceholder}</p>
                                 </>
                               )}
                             </div>
@@ -1588,7 +1829,7 @@ export default function App() {
                   ) : (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between px-1">
-                        <p className="text-[10px] font-bold text-[#718096] uppercase tracking-widest">Toplu Üretim Sonuçları</p>
+                        <p className="text-[10px] font-bold text-[#718096] uppercase tracking-widest">{t.batchResults}</p>
                         <div className="flex items-center gap-2">
                           {isStudioGenerating && (
                             <div className="flex items-center gap-2 mr-2">
@@ -1602,13 +1843,13 @@ export default function App() {
                                 onClick={generateBatchVariations} 
                                 className="px-3 py-1.5 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed text-[10px] font-bold rounded-lg flex items-center gap-1.5 transition-all"
                               >
-                                <RefreshCw className="w-3 h-3" /> Yeniden Dene
+                                <RefreshCw className="w-3 h-3" /> {t.retry}
                               </button>
                               <button 
                                 onClick={downloadAllBatchImages} 
                                 className="px-3 py-1.5 neu-flat text-green-600 hover:text-green-700 active:neu-pressed text-[10px] font-bold rounded-lg flex items-center gap-1.5 transition-all"
                               >
-                                <Download className="w-3 h-3" /> Tümünü İndir
+                                <Download className="w-3 h-3" /> {t.downloadAll}
                               </button>
                             </>
                           )}
