@@ -493,6 +493,52 @@ const MANUAL_CATEGORIES = [
   { id: "action", name: "Aksiyon" }
 ];
 
+const LiquidBackground = () => (
+  <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-60 dark:opacity-30">
+    <MotionDiv
+      animate={{
+        x: [0, 150, 0],
+        y: [0, -100, 0],
+        scale: [1, 1.5, 1],
+        rotate: [0, 180, 0],
+      }}
+      transition={{
+        duration: 25,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="absolute -top-[20%] -left-[20%] w-[60%] h-[60%] bg-blue-400/40 rounded-full blur-[120px]"
+    />
+    <MotionDiv
+      animate={{
+        x: [0, -120, 0],
+        y: [0, 180, 0],
+        scale: [1, 1.3, 1],
+        rotate: [0, -180, 0],
+      }}
+      transition={{
+        duration: 30,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="absolute top-[30%] -right-[20%] w-[50%] h-[50%] bg-orange-400/40 rounded-full blur-[120px]"
+    />
+    <MotionDiv
+      animate={{
+        x: [0, 80, 0],
+        y: [0, 120, 0],
+        scale: [1, 1.6, 1],
+      }}
+      transition={{
+        duration: 22,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="absolute -bottom-[20%] left-[10%] w-[70%] h-[70%] bg-purple-400/30 rounded-full blur-[120px]"
+    />
+  </div>
+);
+
 export default function App() {
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -1123,15 +1169,19 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen neu-base text-[#4a5568] font-sans selection:bg-blue-500/30">
+    <div className={cn(
+      "min-h-screen transition-colors duration-500",
+      isDarkMode ? "bg-[#0f1115] text-white" : "bg-[#e6e9f0] text-[#2d3748]"
+    )}>
+      <LiquidBackground />
       {/* Header */}
-      <header className="neu-flat sticky top-0 z-50 mb-8">
+      <header className="glass-panel sticky top-0 z-50 mb-8 border-b border-white/10 shadow-lg">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500">
+            <div className="w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-blue-500 shadow-inner">
               <Maximize2 className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-[#2d3748]">
+            <h1 className="text-xl font-bold tracking-tight text-[#2d3748] dark:text-white">
               Vision2JSON
             </h1>
           </div>
@@ -1239,13 +1289,13 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* Left Column: Upload & Preview */}
-          <div className="flex flex-col h-full space-y-8">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tight text-[#2d3748]">{t.title}</h2>
-              <p className="text-[#718096] text-sm max-w-md">
+          {/* Bento Item 1: Title & Upload/Preview (Large) */}
+          <div className="lg:col-span-8 space-y-6">
+            <div className="space-y-1">
+              <h2 className="text-3xl font-bold tracking-tight text-[#2d3748] dark:text-white">{t.title}</h2>
+              <p className="text-[#718096] dark:text-gray-400 text-sm max-w-md">
                 {t.subtitle}
               </p>
             </div>
@@ -1258,7 +1308,7 @@ export default function App() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   {...getRootProps()}
                   className={cn(
-                    "relative group cursor-pointer h-[600px] rounded-3xl transition-all duration-300 flex flex-col items-center justify-center gap-4 overflow-hidden",
+                    "relative group cursor-pointer h-[500px] rounded-3xl transition-all duration-300 flex flex-col items-center justify-center gap-4 overflow-hidden",
                     isDragActive 
                       ? "neu-pressed border-2 border-blue-400" 
                       : "neu-flat hover:neu-pressed"
@@ -1277,40 +1327,43 @@ export default function App() {
                 <MotionDiv
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="relative h-[600px] rounded-3xl overflow-hidden neu-flat p-2"
+                  className="relative h-[500px] rounded-3xl overflow-hidden neu-flat p-4 group"
                 >
-                  <img 
-                    src={image} 
-                    alt="Preview" 
-                    className="w-full h-full object-contain rounded-2xl"
-                    referrerPolicy="no-referrer"
-                  />
-                  
-                  <div className="absolute bottom-6 left-6 right-6 flex gap-4">
-                    <button
-                      onClick={analyzeImage}
-                      disabled={isAnalyzing}
-                      className="flex-1 h-12 neu-flat text-blue-600 font-bold rounded-xl flex items-center justify-center gap-2 hover:text-blue-700 active:neu-pressed disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      {isAnalyzing ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          {t.analyzing}
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-5 h-5" />
-                          {t.analyze}
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={reset}
-                      disabled={isAnalyzing}
-                      className="w-12 h-12 neu-flat text-red-500 rounded-xl flex items-center justify-center hover:text-red-600 active:neu-pressed transition-all disabled:opacity-50"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                  <div className="w-full h-full rounded-2xl overflow-hidden bg-[#f0f2f5] dark:bg-[#1a1d23] relative">
+                    <img 
+                      src={image} 
+                      alt="Preview" 
+                      className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <div className="absolute bottom-6 left-6 right-6 flex gap-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                      <button
+                        onClick={analyzeImage}
+                        disabled={isAnalyzing}
+                        className="flex-1 h-12 glass-panel text-blue-600 dark:text-blue-400 font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/20 shadow-xl"
+                      >
+                        {isAnalyzing ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            {t.analyzing}
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-5 h-5" />
+                            {t.analyze}
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={reset}
+                        disabled={isAnalyzing}
+                        className="w-12 h-12 glass-panel text-red-500 rounded-xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 border border-white/20 shadow-xl"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </MotionDiv>
               )}
@@ -1322,22 +1375,64 @@ export default function App() {
                 {error}
               </div>
             )}
+
+            {/* Bento Item 2: Stats (Grid within Bento) */}
+            {result && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="neu-flat p-4 rounded-2xl flex items-center gap-4 group hover:neu-pressed transition-all">
+                  <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.angle}</p>
+                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{result.camera.angle}</p>
+                  </div>
+                </div>
+                <div className="neu-flat p-4 rounded-2xl flex items-center gap-4 group hover:neu-pressed transition-all">
+                  <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform">
+                    <Sun className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.light}</p>
+                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{result.lighting.quality}</p>
+                  </div>
+                </div>
+                <div className="neu-flat p-4 rounded-2xl flex items-center gap-4 group hover:neu-pressed transition-all">
+                  <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-green-500 group-hover:scale-110 transition-transform">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.ethnicity}</p>
+                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{result.subject.ethnicity}</p>
+                  </div>
+                </div>
+                <div className="neu-flat p-4 rounded-2xl flex items-center gap-4 group hover:neu-pressed transition-all">
+                  <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                    <Layout className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.style}</p>
+                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{result.technical.style}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Right Column: Results */}
-          <div className="flex flex-col h-full space-y-6">
+          {/* Bento Item 3: JSON Output (Tall) */}
+          <div className="lg:col-span-4 flex flex-col space-y-6">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
                   <Code className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-[#2d3748] text-xl">{t.jsonOutput}</h3>
+                <h3 className="font-bold text-[#2d3748] dark:text-white text-xl">{t.jsonOutput}</h3>
               </div>
               {result && (
-                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 w-full">
+                <div className="grid grid-cols-2 gap-3 w-full">
                   <button
                     onClick={() => setIsStudioOpen(true)}
-                    className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold w-full"
+                    className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full"
                   >
                     <User className="w-4 h-4" />
                     {t.studioTitle}
@@ -1345,30 +1440,22 @@ export default function App() {
                   <button
                     onClick={generateImage}
                     disabled={isGeneratingImage || isAnalyzing || isUpgrading}
-                    className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold disabled:opacity-50 w-full"
+                    className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold disabled:opacity-50 w-full"
                   >
-                    {isGeneratingImage ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Wand2 className="w-4 h-4" />
-                    )}
+                    {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                     {isGeneratingImage ? t.generating : t.generate}
                   </button>
                   <button
                     onClick={upgradeToHyperRealistic}
                     disabled={isUpgrading || isAnalyzing}
-                    className="h-10 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold disabled:opacity-50 w-full"
+                    className="h-10 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold disabled:opacity-50 w-full"
                   >
-                    {isUpgrading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="w-4 h-4" />
-                    )}
+                    {isUpgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                     {isUpgrading ? t.upgrading : t.upgrade}
                   </button>
                   <button
                     onClick={copyToClipboard}
-                    className="h-10 neu-flat text-[#4a5568] hover:text-blue-500 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold w-full"
+                    className="h-10 neu-flat text-[#4a5568] hover:text-blue-500 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full"
                   >
                     {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                     {copied ? t.copied : t.copy}
@@ -1377,9 +1464,9 @@ export default function App() {
               )}
             </div>
 
-            <div className="relative h-[600px] rounded-3xl neu-flat overflow-hidden flex flex-col">
+            <div className="relative h-[500px] rounded-3xl neu-flat overflow-hidden flex flex-col">
               {!result && !isAnalyzing && (
-                <div className="flex-1 flex flex-col items-center justify-center text-[#718096] p-12 text-center">
+                <div className="flex-1 flex flex-col items-center justify-center text-[#718096] dark:text-gray-400 p-12 text-center">
                   <div className="w-12 h-12 rounded-full neu-pressed flex items-center justify-center mb-4 text-orange-500">
                     <ImageIcon className="w-6 h-6" />
                   </div>
@@ -1390,14 +1477,14 @@ export default function App() {
               {isAnalyzing && (
                 <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-6">
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full border-4 border-[#e6e9f0] border-t-blue-500 animate-spin shadow-lg" />
+                    <div className="w-16 h-16 rounded-full border-4 border-[#e6e9f0] dark:border-gray-800 border-t-blue-500 animate-spin shadow-lg" />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-8 h-8 rounded-full bg-blue-500/20 animate-pulse" />
                     </div>
                   </div>
                   <div className="text-center space-y-2">
-                    <p className="text-sm font-bold text-[#2d3748]">{t.processing}</p>
-                    <p className="text-xs text-[#718096]">{t.aiDetails}</p>
+                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{t.processing}</p>
+                    <p className="text-xs text-[#718096] dark:text-gray-400">{t.aiDetails}</p>
                   </div>
                 </div>
               )}
@@ -1407,171 +1494,166 @@ export default function App() {
                   <MotionDiv 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="p-6 font-mono text-[13px] leading-relaxed flex-1"
+                    className="p-6 font-mono text-[11px] leading-relaxed flex-1 overflow-x-auto"
                   >
-                    <pre className="text-[#4a5568] whitespace-pre-wrap">
+                    <pre className="text-[#4a5568] dark:text-gray-300 whitespace-pre">
                       {JSON.stringify(result, null, 2)}
                     </pre>
                   </MotionDiv>
-
-                  {/* Suggestions Section */}
-                  <div className="p-6 neu-pressed space-y-6 rounded-b-3xl">
-                    <div className="flex items-center gap-2">
-                      <Wand2 className="w-4 h-4 text-blue-500" />
-                      <h4 className="text-xs font-bold text-[#2d3748] uppercase tracking-wider">{t.suggestions}</h4>
-                    </div>
-                    
-                    <div className="grid gap-4">
-                      {Object.entries(result.suggestions).map(([key, options]) => (
-                        <div key={key} className="space-y-2">
-                          <span className="text-[10px] text-[#718096] font-bold uppercase tracking-widest">
-                            {currentSuggestionLabels[key as keyof typeof currentSuggestionLabels] || key}
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            {options.map((option) => (
-                              <button
-                                key={option}
-                                onClick={() => setSelectedSuggestions(prev => ({
-                                  ...prev,
-                                  [key]: prev[key] === option ? undefined : option
-                                }))}
-                                className={cn(
-                                  "px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all",
-                                  selectedSuggestions[key] === option
-                                    ? "neu-pressed text-blue-600"
-                                    : "neu-flat text-[#4a5568] hover:text-blue-500"
-                                )}
-                              >
-                                {option}
-                              </button>
-                            ))}
-                          </div>
-                          
-                          {/* Custom Color Picker for Clothing */}
-                          {key === 'clothing' && (
-                            <div className="pt-1 flex items-center gap-2">
-                              <input 
-                                type="color" 
-                                ref={clothingColorRef}
-                                className="sr-only"
-                                onChange={(e) => {
-                                  const color = e.target.value;
-                                  setSelectedSuggestions(prev => ({
-                                    ...prev,
-                                    clothingColor: color
-                                  }));
-                                }}
-                              />
-                              <button
-                                onClick={() => clothingColorRef.current?.click()}
-                                className={cn(
-                                  "px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5",
-                                  selectedSuggestions.clothingColor
-                                    ? "neu-pressed text-blue-600"
-                                    : "neu-flat text-[#4a5568] hover:text-blue-500"
-                                )}
-                              >
-                                {selectedSuggestions.clothingColor ? (
-                                  <div 
-                                    className="w-3 h-3 rounded-full border border-white/50 shadow-sm" 
-                                    style={{ backgroundColor: selectedSuggestions.clothingColor }}
-                                  />
-                                ) : (
-                                  <Palette className="w-3 h-3 text-orange-500" />
-                                )}
-                                {selectedSuggestions.clothingColor ? `Renk: ${selectedSuggestions.clothingColor}` : 'Sadece Rengi Değiştir'}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {Object.values(selectedSuggestions).some(v => v !== undefined) && (
-                      <button
-                        onClick={reviseAnalysis}
-                        disabled={isRevising}
-                        className="w-full h-12 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                      >
-                        {isRevising ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <RefreshCw className="w-4 h-4" />
-                        )}
-                        {isRevising ? t.revising : t.revisePrompt}
-                      </button>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        onClick={resetToInitial}
-                        className="h-10 neu-flat hover:text-red-500 active:neu-pressed text-[#4a5568] text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                        {t.reset}
-                      </button>
-                      <button
-                        onClick={scrollToTop}
-                        className="h-10 neu-flat hover:text-blue-500 active:neu-pressed text-[#4a5568] text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
-                      >
-                        <ArrowUp className="w-4 h-4" />
-                        {t.goUp}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Quick Stats Overlay */}
-              {result && (
-                <div className="p-4 neu-flat rounded-b-3xl grid grid-cols-2 sm:grid-cols-4 gap-4 mt-1">
-                  <StatItem icon={<Camera className="w-3 h-3 text-blue-500" />} label={t.angle} value={result.camera.angle} />
-                  <StatItem icon={<Sun className="w-3 h-3 text-orange-500" />} label={t.light} value={result.lighting.quality} />
-                  <StatItem icon={<User className="w-3 h-3 text-green-500" />} label={t.ethnicity} value={result.subject.ethnicity} />
-                  <StatItem icon={<Layout className="w-3 h-3 text-red-500" />} label={t.style} value={result.technical.style} />
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Generated Image Preview Section */}
-            <AnimatePresenceComponent>
-              {generatedImageUrl && (
+          {/* Bento Item 4: Suggestions (Wide) */}
+          {result && (
+            <div className="lg:col-span-12 neu-flat rounded-3xl overflow-hidden">
+              <div className="p-6 border-b border-[#c8cbd2]/20 dark:border-gray-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Wand2 className="w-5 h-5 text-blue-500" />
+                  <h4 className="text-sm font-bold text-[#2d3748] dark:text-white uppercase tracking-wider">{t.suggestions}</h4>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={scrollToTop}
+                    className="w-10 h-10 neu-flat hover:text-blue-500 active:neu-pressed text-[#4a5568] dark:text-gray-400 rounded-xl flex items-center justify-center transition-all"
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 bg-[#f8fafc]/50 dark:bg-[#1a1d23]/50">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {Object.entries(result.suggestions).map(([key, options]) => (
+                    <div key={key} className="space-y-3">
+                      <label className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-widest ml-1">
+                        {currentSuggestionLabels[key as keyof typeof currentSuggestionLabels] || key}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {options.map((option) => (
+                          <button
+                            key={option}
+                            onClick={() => setSelectedSuggestions(prev => ({
+                              ...prev,
+                              [key]: prev[key] === option ? undefined : option
+                            }))}
+                            className={cn(
+                              "px-3 py-2 rounded-xl text-[11px] font-bold transition-all",
+                              selectedSuggestions[key] === option
+                                ? "neu-pressed text-blue-600 dark:text-blue-400"
+                                : "neu-flat text-[#4a5568] dark:text-gray-300 hover:text-blue-500"
+                            )}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {key === 'clothing' && (
+                        <div className="pt-1 flex items-center gap-2">
+                          <input 
+                            type="color" 
+                            ref={clothingColorRef}
+                            className="sr-only"
+                            onChange={(e) => {
+                              const color = e.target.value;
+                              setSelectedSuggestions(prev => ({
+                                ...prev,
+                                clothingColor: color
+                              }));
+                            }}
+                          />
+                          <button
+                            onClick={() => clothingColorRef.current?.click()}
+                            className={cn(
+                              "px-3 py-2 rounded-xl text-[11px] font-bold transition-all flex items-center gap-2",
+                              selectedSuggestions.clothingColor
+                                ? "neu-pressed text-blue-600"
+                                : "neu-flat text-[#4a5568] hover:text-blue-500"
+                            )}
+                          >
+                            {selectedSuggestions.clothingColor ? (
+                              <div 
+                                className="w-4 h-4 rounded-full border border-white/50 shadow-sm" 
+                                style={{ backgroundColor: selectedSuggestions.clothingColor }}
+                              />
+                            ) : (
+                              <Palette className="w-4 h-4 text-orange-500" />
+                            )}
+                            {selectedSuggestions.clothingColor ? `Renk: ${selectedSuggestions.clothingColor}` : 'Sadece Rengi Değiştir'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {Object.values(selectedSuggestions).some(v => v !== undefined) && (
+                  <div className="mt-8 pt-8 border-t border-[#c8cbd2]/20 flex justify-center">
+                    <button
+                      onClick={reviseAnalysis}
+                      disabled={isRevising}
+                      className="w-full max-w-md h-14 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed text-sm font-bold rounded-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+                    >
+                      {isRevising ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
+                      {isRevising ? t.revising : t.revisePrompt}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Generated Image Preview Card */}
+          <AnimatePresenceComponent>
+            {generatedImageUrl && (
+              <div className="lg:col-span-12">
                 <MotionDiv
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="relative group rounded-3xl neu-flat overflow-hidden aspect-video sm:aspect-square max-h-[400px] p-2"
+                  className="relative group rounded-3xl neu-flat overflow-hidden p-4"
                 >
-                  <img 
-                    src={generatedImageUrl} 
-                    alt="Generated Preview" 
-                    className="w-full h-full object-cover rounded-2xl"
-                    referrerPolicy="no-referrer"
-                  />
-                  
-                  <div className="absolute bottom-6 left-6 right-6 flex gap-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="flex-1 h-12 neu-flat text-blue-600 font-bold rounded-xl text-xs flex items-center justify-center gap-2 hover:text-blue-700 active:neu-pressed transition-all"
-                    >
-                      <Maximize2 className="w-4 h-4" />
-                      {t.enlarge}
-                    </button>
-                    <button
-                      onClick={() => setGeneratedImageUrl(null)}
-                      className="w-12 h-12 neu-flat text-red-500 rounded-xl flex items-center justify-center hover:text-red-600 active:neu-pressed transition-all"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                  
-                  <div className="absolute top-6 left-6 px-4 py-2 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] uppercase tracking-wider shadow-sm">
-                    {t.generatedImageBadge}
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="md:w-1/2 aspect-square rounded-2xl overflow-hidden relative">
+                      <img 
+                        src={generatedImageUrl} 
+                        alt="Generated Preview" 
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute top-4 left-4 px-4 py-2 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] uppercase tracking-wider shadow-sm">
+                        {t.generatedImageBadge}
+                      </div>
+                    </div>
+                    <div className="md:w-1/2 flex flex-col justify-center space-y-6 p-4">
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-bold text-[#2d3748]">Varyasyon Hazır!</h3>
+                        <p className="text-[#718096] text-sm">AI tarafından oluşturulan yeni görseliniz yukarıdaki kriterlere göre optimize edildi.</p>
+                      </div>
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => setIsModalOpen(true)}
+                          className="flex-1 h-12 neu-flat text-blue-600 font-bold rounded-xl text-xs flex items-center justify-center gap-2 hover:text-blue-700 active:neu-pressed transition-all"
+                        >
+                          <Maximize2 className="w-4 h-4" />
+                          {t.enlarge}
+                        </button>
+                        <button
+                          onClick={() => setGeneratedImageUrl(null)}
+                          className="w-12 h-12 neu-flat text-red-500 rounded-xl flex items-center justify-center hover:text-red-600 active:neu-pressed transition-all"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </MotionDiv>
-              )}
-            </AnimatePresenceComponent>
-          </div>
+              </div>
+            )}
+          </AnimatePresenceComponent>
+
         </div>
       </main>
 
