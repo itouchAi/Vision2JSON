@@ -1203,7 +1203,7 @@ export default function App() {
                   <img 
                     src={image} 
                     alt="Preview" 
-                    className="w-full h-full object-cover rounded-2xl"
+                    className="w-full h-full object-contain rounded-2xl"
                     referrerPolicy="no-referrer"
                   />
                   
