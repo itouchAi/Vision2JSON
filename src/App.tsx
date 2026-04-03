@@ -1175,10 +1175,10 @@ export default function App() {
     )}>
       <LiquidBackground />
       {/* Header */}
-      <header className="glass-panel sticky top-0 z-50 mb-8 border-b border-white/10 shadow-lg">
+      <header className="neu-flat sticky top-0 z-50 mb-8 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 glass-panel rounded-xl flex items-center justify-center text-blue-500 shadow-inner">
+            <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm">
               <Maximize2 className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-bold tracking-tight text-[#2d3748] dark:text-white">
@@ -1342,7 +1342,7 @@ export default function App() {
                       <button
                         onClick={analyzeImage}
                         disabled={isAnalyzing}
-                        className="flex-1 h-12 glass-panel text-blue-600 dark:text-blue-400 font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/20 shadow-xl"
+                        className="flex-1 h-12 glass-panel bg-white/20 dark:bg-white/10 text-blue-600 dark:text-blue-400 font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/40 dark:border-white/20 shadow-2xl backdrop-blur-2xl"
                       >
                         {isAnalyzing ? (
                           <>
@@ -1359,7 +1359,7 @@ export default function App() {
                       <button
                         onClick={reset}
                         disabled={isAnalyzing}
-                        className="w-12 h-12 glass-panel text-red-500 rounded-xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 border border-white/20 shadow-xl"
+                        className="w-12 h-12 glass-panel bg-white/20 dark:bg-white/10 text-red-500 rounded-xl flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 border border-white/40 dark:border-white/20 shadow-2xl backdrop-blur-2xl"
                       >
                         <X className="w-5 h-5" />
                       </button>
@@ -1494,9 +1494,9 @@ export default function App() {
                   <MotionDiv 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="p-6 font-mono text-[11px] leading-relaxed flex-1 overflow-x-auto"
+                    className="p-6 font-mono text-[11px] leading-relaxed flex-1"
                   >
-                    <pre className="text-[#4a5568] dark:text-gray-300 whitespace-pre">
+                    <pre className="text-[#4a5568] dark:text-gray-300 whitespace-pre-wrap">
                       {JSON.stringify(result, null, 2)}
                     </pre>
                   </MotionDiv>
