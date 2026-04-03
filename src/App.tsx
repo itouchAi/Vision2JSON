@@ -17,6 +17,7 @@ import {
   Maximize2,
   ChevronRight,
   Code,
+  Scan,
   Sparkles,
   Zap,
   Wand2,
@@ -123,7 +124,14 @@ const TRANSLATIONS = {
       pose: "Poz",
       clothing: "Kıyafet Tarzı",
       background: "Arka Plan"
-    }
+    },
+    historyTitle: "Son İşlemler",
+    chatTitle: "AI Sohbeti",
+    chatPlaceholder: "Görsel hakkında bir şey sor...",
+    send: "Gönder",
+    noHistory: "Henüz bir analiz yapılmadı.",
+    clearHistory: "Geçmişi Temizle",
+    chatContext: "Bu görsel ve analiz sonuçları hakkında bana yardımcı ol."
   },
   ENG: {
     docs: "Documentation",
@@ -216,7 +224,14 @@ const TRANSLATIONS = {
       pose: "Pose",
       clothing: "Clothing Style",
       background: "Background"
-    }
+    },
+    historyTitle: "Recent Actions",
+    chatTitle: "AI Chat",
+    chatPlaceholder: "Ask something about the image...",
+    send: "Send",
+    noHistory: "No analysis performed yet.",
+    clearHistory: "Clear History",
+    chatContext: "Help me with this image and analysis results."
   }
 };
 
@@ -575,6 +590,86 @@ export default function App() {
   const [themeColor, setThemeColor] = useState('#e6e9f0');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [language, setLanguage] = useState<'TR' | 'ENG'>('TR');
+  const [history, setHistory] = useState<{ id: string; image: string; result: AnalysisResult; date: string }[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('analysis_history');
+    if (savedHistory) {
+      try {
+        setHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error("History parse error", e);
+      }
+    }
+  }, []);
+
+  const saveToHistory = (newResult: AnalysisResult, img: string) => {
+    const newItem = {
+      id: Date.now().toString(),
+      image: img,
+      result: newResult,
+      date: new Date().toLocaleString()
+    };
+    const updatedHistory = [newItem, ...history].slice(0, 10);
+    setHistory(updatedHistory);
+    localStorage.setItem('analysis_history', JSON.stringify(updatedHistory));
+  };
+
+  const loadFromHistory = (item: { image: string; result: AnalysisResult }) => {
+    setImage(item.image);
+    setResult(item.result);
+    setInitialResult(item.result);
+    setChatMessages([]);
+    setIsHistoryOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem('analysis_history');
+    setIsHistoryOpen(false);
+  };
+
+  const askAI = async () => {
+    if (!chatInput.trim() || !image || !result) return;
+
+    const userMessage = chatInput.trim();
+    setChatMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setChatInput("");
+    setIsChatLoading(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const model = "gemini-3-flash-preview";
+      
+      const prompt = `
+        User is asking a question about an image they uploaded and its analysis results.
+        Analysis Results: ${JSON.stringify(result)}
+        User Question: ${userMessage}
+        
+        Please provide a helpful, concise answer based on the image and the analysis.
+        Answer in the same language as the user's question.
+      `;
+
+      const response = await ai.models.generateContent({
+        model,
+        contents: [
+          { parts: [{ text: prompt }, { inlineData: { data: image.split(',')[1], mimeType: 'image/jpeg' } }] }
+        ]
+      });
+
+      setChatMessages(prev => [...prev, { role: 'ai', text: response.text || "Üzgünüm, bir hata oluştu." }]);
+    } catch (err) {
+      console.error(err);
+      setChatMessages(prev => [...prev, { role: 'ai', text: "Bir hata oluştu, lütfen tekrar deneyin." }]);
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isDarkMode) {
@@ -686,6 +781,7 @@ export default function App() {
         const parsed = JSON.parse(text);
         setResult(parsed);
         setInitialResult(parsed);
+        saveToHistory(parsed, image);
       }
     } catch (err: any) {
       console.error("Analysis failed:", err);
@@ -1197,6 +1293,63 @@ export default function App() {
             <div className="h-6 w-px bg-[#c8cbd2] dark:bg-[#1f222a] mx-2"></div>
             
             <div className="flex items-center gap-3">
+              {/* History Toggle */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                  className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all"
+                  title={t.historyTitle}
+                >
+                  <RotateCcw className="w-5 h-5" />
+                </button>
+                
+                <AnimatePresenceComponent>
+                  {isHistoryOpen && (
+                    <MotionDiv
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-3 w-72 neu-flat rounded-3xl overflow-hidden z-[60] border border-white/10 p-4 shadow-2xl"
+                    >
+                      <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-widest">{t.historyTitle}</h3>
+                        {history.length > 0 && (
+                          <button 
+                            onClick={clearHistory} 
+                            className="text-[9px] text-red-500 hover:text-red-600 transition-colors font-bold uppercase"
+                          >
+                            {t.clearHistory}
+                          </button>
+                        )}
+                      </div>
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+                        {history.length === 0 ? (
+                          <div className="neu-pressed rounded-2xl p-6 text-center border border-white/5">
+                            <p className="text-[10px] text-[#718096] font-medium">{t.noHistory}</p>
+                          </div>
+                        ) : (
+                          history.map((item) => (
+                            <button
+                              key={item.id}
+                              onClick={() => loadFromHistory(item)}
+                              className="w-full neu-flat hover:neu-pressed p-2 rounded-2xl transition-all group flex items-center gap-3 border border-white/5"
+                            >
+                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                <img src={item.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              </div>
+                              <div className="text-left overflow-hidden">
+                                <p className="text-[9px] text-[#2d3748] dark:text-white font-bold truncate">{item.result.subject.ethnicity} - {item.result.technical.style}</p>
+                                <p className="text-[8px] text-[#718096] font-medium">{item.date}</p>
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </MotionDiv>
+                  )}
+                </AnimatePresenceComponent>
+              </div>
+
               {/* Language Toggle */}
               <div className="flex items-center gap-2">
                 <button
@@ -1289,17 +1442,70 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-4">
+        {/* Headers Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-end">
+          <div className="lg:col-span-5 space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500">
+                <Scan className="w-5 h-5" />
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-[#2d3748] dark:text-white">{t.title}</h2>
+            </div>
+            <p className="text-[#718096] dark:text-gray-400 text-sm max-w-md ml-[52px]">
+              {t.subtitle}
+            </p>
+          </div>
+          <div className="lg:col-span-2"></div>
+          <div className="lg:col-span-5">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
+                  <Code className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-[#2d3748] dark:text-white text-xl">{t.jsonOutput}</h3>
+              </div>
+              <div className="grid grid-cols-4 gap-3 w-full">
+                <button
+                  onClick={() => setIsStudioOpen(true)}
+                  disabled={!result}
+                  className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden xl:inline">{t.studioTitle}</span>
+                </button>
+                <button
+                  onClick={generateImage}
+                  disabled={!result || isGeneratingImage || isAnalyzing || isUpgrading}
+                  className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold disabled:opacity-40 disabled:cursor-not-allowed w-full"
+                >
+                  {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                  <span className="hidden xl:inline">{isGeneratingImage ? t.generating : t.generate}</span>
+                </button>
+                <button
+                  onClick={upgradeToHyperRealistic}
+                  disabled={!result || isUpgrading || isAnalyzing}
+                  className="h-10 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold disabled:opacity-40 disabled:cursor-not-allowed w-full"
+                >
+                  {isUpgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  <span className="hidden xl:inline">{isUpgrading ? t.upgrading : t.upgrade}</span>
+                </button>
+                <button
+                  onClick={copyToClipboard}
+                  disabled={!result}
+                  className="h-10 neu-flat text-[#4a5568] hover:text-blue-500 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  <span className="hidden xl:inline">{copied ? t.copied : t.copy}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* Bento Item 1: Title & Upload/Preview (Large) */}
-          <div className="lg:col-span-8 space-y-6">
-            <div className="space-y-1">
-              <h2 className="text-3xl font-bold tracking-tight text-[#2d3748] dark:text-white">{t.title}</h2>
-              <p className="text-[#718096] dark:text-gray-400 text-sm max-w-md">
-                {t.subtitle}
-              </p>
-            </div>
-
+          {/* Bento Item 1: Upload/Preview (Left) */}
+          <div className="lg:col-span-5 space-y-6">
             <AnimatePresenceComponent mode="wait">
               {!image ? (
                 <MotionDiv
@@ -1336,8 +1542,6 @@ export default function App() {
                       className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
                     <div className="absolute bottom-6 left-6 right-6 flex gap-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
                       <button
                         onClick={analyzeImage}
@@ -1375,95 +1579,54 @@ export default function App() {
                 {error}
               </div>
             )}
+          </div>
 
-            {/* Bento Item 2: Stats (Grid within Bento) */}
+          {/* Bento Item 2: Stats (Middle - Vertical) */}
+          <div className="lg:col-span-2 flex flex-col gap-4">
             {result && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="neu-flat p-4 rounded-2xl flex items-center gap-4 group hover:neu-pressed transition-all">
+              <>
+                <div className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
                   <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                     <Camera className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.angle}</p>
-                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{result.camera.angle}</p>
+                    <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.camera.angle}</p>
                   </div>
                 </div>
-                <div className="neu-flat p-4 rounded-2xl flex items-center gap-4 group hover:neu-pressed transition-all">
+                <div className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
                   <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform">
                     <Sun className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.light}</p>
-                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{result.lighting.quality}</p>
+                    <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.lighting.quality}</p>
                   </div>
                 </div>
-                <div className="neu-flat p-4 rounded-2xl flex items-center gap-4 group hover:neu-pressed transition-all">
+                <div className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
                   <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-green-500 group-hover:scale-110 transition-transform">
                     <User className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.ethnicity}</p>
-                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{result.subject.ethnicity}</p>
+                    <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.subject.ethnicity}</p>
                   </div>
                 </div>
-                <div className="neu-flat p-4 rounded-2xl flex items-center gap-4 group hover:neu-pressed transition-all">
+                <div className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
                   <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
                     <Layout className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.style}</p>
-                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{result.technical.style}</p>
+                    <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.technical.style}</p>
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
-          {/* Bento Item 3: JSON Output (Tall) */}
-          <div className="lg:col-span-4 flex flex-col space-y-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
-                  <Code className="w-5 h-5" />
-                </div>
-                <h3 className="font-bold text-[#2d3748] dark:text-white text-xl">{t.jsonOutput}</h3>
-              </div>
-              {result && (
-                <div className="grid grid-cols-2 gap-3 w-full">
-                  <button
-                    onClick={() => setIsStudioOpen(true)}
-                    className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full"
-                  >
-                    <User className="w-4 h-4" />
-                    {t.studioTitle}
-                  </button>
-                  <button
-                    onClick={generateImage}
-                    disabled={isGeneratingImage || isAnalyzing || isUpgrading}
-                    className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold disabled:opacity-50 w-full"
-                  >
-                    {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                    {isGeneratingImage ? t.generating : t.generate}
-                  </button>
-                  <button
-                    onClick={upgradeToHyperRealistic}
-                    disabled={isUpgrading || isAnalyzing}
-                    className="h-10 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold disabled:opacity-50 w-full"
-                  >
-                    {isUpgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                    {isUpgrading ? t.upgrading : t.upgrade}
-                  </button>
-                  <button
-                    onClick={copyToClipboard}
-                    className="h-10 neu-flat text-[#4a5568] hover:text-blue-500 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full"
-                  >
-                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                    {copied ? t.copied : t.copy}
-                  </button>
-                </div>
-              )}
-            </div>
-
+          {/* Bento Item 3: JSON Output (Right) */}
+          <div className="lg:col-span-5 flex flex-col space-y-6">
             <div className="relative h-[500px] rounded-3xl neu-flat overflow-hidden flex flex-col">
               {!result && !isAnalyzing && (
                 <div className="flex-1 flex flex-col items-center justify-center text-[#718096] dark:text-gray-400 p-12 text-center">
@@ -1505,102 +1668,138 @@ export default function App() {
             </div>
           </div>
 
-          {/* Bento Item 4: Suggestions (Wide) */}
+          {/* Bento Item 4: Suggestions & AI Chat (Side-by-Side) */}
           {result && (
-            <div className="lg:col-span-12 neu-flat rounded-3xl overflow-hidden">
-              <div className="p-6 border-b border-[#c8cbd2]/20 dark:border-gray-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Wand2 className="w-5 h-5 text-blue-500" />
-                  <h4 className="text-sm font-bold text-[#2d3748] dark:text-white uppercase tracking-wider">{t.suggestions}</h4>
+            <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Suggestions */}
+              <div className="neu-flat rounded-3xl overflow-hidden flex flex-col h-[450px]">
+                <div className="p-6 border-b border-[#c8cbd2]/20 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Wand2 className="w-5 h-5 text-blue-500" />
+                    <h4 className="text-sm font-bold text-[#2d3748] dark:text-white uppercase tracking-wider">{t.suggestions}</h4>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={scrollToTop}
-                    className="w-10 h-10 neu-flat hover:text-blue-500 active:neu-pressed text-[#4a5568] dark:text-gray-400 rounded-xl flex items-center justify-center transition-all"
-                  >
-                    <ArrowUp className="w-4 h-4" />
-                  </button>
+                
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#f8fafc]/50 dark:bg-[#1a1d23]/50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {Object.entries(result.suggestions).map(([key, options]) => (
+                      <div key={key} className="space-y-3">
+                        <label className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-widest ml-1">
+                          {currentSuggestionLabels[key as keyof typeof currentSuggestionLabels] || key}
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {options.map((option) => (
+                            <button
+                              key={option}
+                              onClick={() => setSelectedSuggestions(prev => ({
+                                ...prev,
+                                [key]: prev[key] === option ? undefined : option
+                              }))}
+                              className={cn(
+                                "px-3 py-2 rounded-xl text-[11px] font-bold transition-all",
+                                selectedSuggestions[key] === option
+                                  ? "neu-pressed text-blue-600 dark:text-blue-400"
+                                  : "neu-flat text-[#4a5568] dark:text-gray-300 hover:text-blue-500"
+                              )}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {Object.values(selectedSuggestions).some(v => v !== undefined) && (
+                    <div className="mt-8 pt-8 border-t border-[#c8cbd2]/20 flex justify-center">
+                      <button
+                        onClick={reviseAnalysis}
+                        disabled={isRevising}
+                        className="w-full h-12 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed text-xs font-bold rounded-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+                      >
+                        {isRevising ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                        {isRevising ? t.revising : t.revisePrompt}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-              
-              <div className="p-6 bg-[#f8fafc]/50 dark:bg-[#1a1d23]/50">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {Object.entries(result.suggestions).map(([key, options]) => (
-                    <div key={key} className="space-y-3">
-                      <label className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-widest ml-1">
-                        {currentSuggestionLabels[key as keyof typeof currentSuggestionLabels] || key}
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {options.map((option) => (
-                          <button
-                            key={option}
-                            onClick={() => setSelectedSuggestions(prev => ({
-                              ...prev,
-                              [key]: prev[key] === option ? undefined : option
-                            }))}
-                            className={cn(
-                              "px-3 py-2 rounded-xl text-[11px] font-bold transition-all",
-                              selectedSuggestions[key] === option
-                                ? "neu-pressed text-blue-600 dark:text-blue-400"
-                                : "neu-flat text-[#4a5568] dark:text-gray-300 hover:text-blue-500"
-                            )}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      {key === 'clothing' && (
-                        <div className="pt-1 flex items-center gap-2">
-                          <input 
-                            type="color" 
-                            ref={clothingColorRef}
-                            className="sr-only"
-                            onChange={(e) => {
-                              const color = e.target.value;
-                              setSelectedSuggestions(prev => ({
-                                ...prev,
-                                clothingColor: color
-                              }));
-                            }}
-                          />
-                          <button
-                            onClick={() => clothingColorRef.current?.click()}
-                            className={cn(
-                              "px-3 py-2 rounded-xl text-[11px] font-bold transition-all flex items-center gap-2",
-                              selectedSuggestions.clothingColor
-                                ? "neu-pressed text-blue-600"
-                                : "neu-flat text-[#4a5568] hover:text-blue-500"
-                            )}
-                          >
-                            {selectedSuggestions.clothingColor ? (
-                              <div 
-                                className="w-4 h-4 rounded-full border border-white/50 shadow-sm" 
-                                style={{ backgroundColor: selectedSuggestions.clothingColor }}
-                              />
-                            ) : (
-                              <Palette className="w-4 h-4 text-orange-500" />
-                            )}
-                            {selectedSuggestions.clothingColor ? `Renk: ${selectedSuggestions.clothingColor}` : 'Sadece Rengi Değiştir'}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
 
-                {Object.values(selectedSuggestions).some(v => v !== undefined) && (
-                  <div className="mt-8 pt-8 border-t border-[#c8cbd2]/20 flex justify-center">
-                    <button
-                      onClick={reviseAnalysis}
-                      disabled={isRevising}
-                      className="w-full max-w-md h-14 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed text-sm font-bold rounded-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-50"
-                    >
-                      {isRevising ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
-                      {isRevising ? t.revising : t.revisePrompt}
-                    </button>
+              {/* AI Chat */}
+              <div className="neu-flat rounded-3xl overflow-hidden flex flex-col h-[450px]">
+                <div className="p-6 border-b border-[#c8cbd2]/20 dark:border-gray-800 flex items-center gap-2 flex-shrink-0">
+                  <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-yellow-500">
+                    <Zap className="w-5 h-5" />
                   </div>
-                )}
+                  <h4 className="text-sm font-bold text-[#2d3748] dark:text-white uppercase tracking-wider">{t.chatTitle}</h4>
+                  {chatMessages.length > 0 && (
+                    <button 
+                      onClick={() => setChatMessages([])} 
+                      className="ml-auto text-[10px] text-[#718096] hover:text-red-500 font-bold uppercase tracking-widest transition-colors"
+                    >
+                      Temizle
+                    </button>
+                  )}
+                </div>
+                
+                <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 bg-[#f8fafc]/30 dark:bg-[#1a1d23]/30">
+                  {chatMessages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 opacity-50">
+                      <div className="w-16 h-16 rounded-full neu-pressed flex items-center justify-center text-blue-500">
+                        <Wand2 className="w-8 h-8" />
+                      </div>
+                      <p className="text-sm text-[#718096] max-w-xs">{t.chatContext}</p>
+                    </div>
+                  )}
+                  {chatMessages.map((msg, idx) => (
+                    <MotionDiv
+                      key={idx}
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      className={cn(
+                        "flex flex-col max-w-[85%] space-y-1",
+                        msg.role === 'user' ? "ml-auto items-end" : "mr-auto items-start"
+                      )}
+                    >
+                      <div className={cn(
+                        "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",
+                        msg.role === 'user' 
+                          ? "bg-blue-600 text-white rounded-tr-none" 
+                          : "neu-flat text-[#2d3748] dark:text-gray-200 rounded-tl-none border border-white/5"
+                      )}>
+                        {msg.text}
+                      </div>
+                    </MotionDiv>
+                  ))}
+                  {isChatLoading && (
+                    <div className="flex items-center gap-3 text-[#718096] ml-2">
+                      <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest">{t.aiDetails}</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="p-4 border-t border-[#c8cbd2]/20 dark:border-gray-800 flex gap-3 flex-shrink-0">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && askAI()}
+                    placeholder={t.chatPlaceholder}
+                    className="flex-1 bg-transparent neu-pressed rounded-2xl px-6 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
+                  />
+                  <button
+                    onClick={askAI}
+                    disabled={isChatLoading || !chatInput.trim()}
+                    className="px-4 py-3 neu-flat text-blue-600 font-bold rounded-2xl hover:neu-pressed disabled:opacity-50 transition-all flex items-center gap-2 group"
+                  >
+                    <RefreshCw className={cn("w-4 h-4 group-hover:rotate-180 transition-transform duration-500", isChatLoading && "animate-spin")} />
+                  </button>
+                </div>
               </div>
             </div>
           )}
