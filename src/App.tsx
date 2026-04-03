@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useDropzone, DropzoneOptions } from 'react-dropzone';
 import { GoogleGenAI, Type } from "@google/genai";
+import { HexColorPicker } from "react-colorful";
 import { 
   Upload, 
   Image as ImageIcon, 
@@ -115,7 +116,6 @@ const TRANSLATIONS = {
     action: "Aksiyon",
     generatedImageTitle: "Üretilen Görsel",
     generatedImageDesc: "Analiz edilen prompt temel alınarak oluşturuldu.",
-    close: "Kapat",
     suggestionLabels: {
       cameraAngle: "Kamera Açısı",
       lighting: "Işıklandırma",
@@ -209,7 +209,6 @@ const TRANSLATIONS = {
     action: "Action",
     generatedImageTitle: "Generated Image",
     generatedImageDesc: "Created based on the analyzed prompt.",
-    close: "Close",
     suggestionLabels: {
       cameraAngle: "Camera Angle",
       lighting: "Lighting",
@@ -527,15 +526,44 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [themeColor, setThemeColor] = useState('#e6e9f0');
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [language, setLanguage] = useState<'TR' | 'ENG'>('TR');
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isDarkMode) {
       document.body.classList.add('dark-theme');
+      setThemeColor('#1e2128');
     } else {
       document.body.classList.remove('dark-theme');
+      setThemeColor('#e6e9f0');
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--bg-base', themeColor);
+    
+    // Calculate shadows for neumorphism based on background color
+    const hexToRgb = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return { r, g, b };
+    };
+
+    const adjustColor = (hex: string, amount: number) => {
+      const { r, g, b } = hexToRgb(hex);
+      const clamp = (num: number) => Math.min(255, Math.max(0, num));
+      const toHex = (num: number) => clamp(num).toString(16).padStart(2, '0');
+      return `#${toHex(r + amount)}${toHex(g + amount)}${toHex(b + amount)}`;
+    };
+
+    const shadowLight = adjustColor(themeColor, 25);
+    const shadowDark = adjustColor(themeColor, -25);
+    
+    document.documentElement.style.setProperty('--shadow-light', shadowLight);
+    document.documentElement.style.setProperty('--shadow-dark', shadowDark);
+  }, [themeColor]);
 
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   const clothingColorRef = useRef<HTMLInputElement>(null);
@@ -1141,19 +1169,70 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Theme Toggle */}
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all relative overflow-hidden"
-              >
-                {/* Corner lines for "shirt" style */}
-                <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-current opacity-50 rounded-tl-sm"></div>
-                <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-current opacity-50 rounded-tr-sm"></div>
-                <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-current opacity-50 rounded-bl-sm"></div>
-                <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-current opacity-50 rounded-br-sm"></div>
-                
-                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
+              {/* Theme & Color Toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all relative overflow-hidden"
+                >
+                  {/* Corner lines for "shirt" style */}
+                  <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-current opacity-50 rounded-tl-sm"></div>
+                  <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-current opacity-50 rounded-tr-sm"></div>
+                  <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-current opacity-50 rounded-bl-sm"></div>
+                  <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-current opacity-50 rounded-br-sm"></div>
+                  
+                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+
+                {/* Color Picker Toggle */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowColorPicker(!showColorPicker)}
+                    className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all relative overflow-hidden"
+                  >
+                    <Palette className="w-4 h-4" />
+                    <div 
+                      className="absolute bottom-1 right-1 w-2 h-2 rounded-full border border-white/20 shadow-sm"
+                      style={{ backgroundColor: themeColor }}
+                    />
+                  </button>
+
+                  <AnimatePresenceComponent>
+                    {showColorPicker && (
+                      <MotionDiv
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                        className="absolute right-0 mt-4 p-4 neu-flat rounded-2xl z-[100] flex flex-col gap-4 min-w-[200px]"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#4a5568]">Arka Plan Rengi</span>
+                          <button 
+                            onClick={() => setShowColorPicker(false)}
+                            className="p-1 hover:text-blue-500 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="custom-color-picker">
+                          <HexColorPicker 
+                            color={themeColor} 
+                            onChange={setThemeColor}
+                          />
+                        </div>
+
+                        <button
+                          onClick={() => setShowColorPicker(false)}
+                          className="w-full py-2 neu-flat text-xs font-bold text-blue-500 hover:neu-pressed transition-all rounded-xl"
+                        >
+                          Tamam
+                        </button>
+                      </MotionDiv>
+                    )}
+                  </AnimatePresenceComponent>
+                </div>
+              </div>
             </div>
           </div>
         </div>
