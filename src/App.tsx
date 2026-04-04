@@ -32,6 +32,52 @@ const MotionDiv = motion.div as any;
 const AnimatePresenceComponent = AnimatePresence as any;
 import { cn } from './lib/utils';
 
+const revealContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
+    }
+  }
+};
+
+const revealItem = {
+  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { 
+      type: "spring",
+      stiffness: 200,
+      damping: 20,
+      mass: 1
+    } 
+  }
+};
+
+const revealItemLeft = {
+  hidden: { opacity: 0, x: -40, scale: 0.95 },
+  show: { 
+    opacity: 1, 
+    x: 0, 
+    scale: 1,
+    transition: { type: "spring", stiffness: 200, damping: 20 } 
+  }
+};
+
+const revealItemRight = {
+  hidden: { opacity: 0, x: 40, scale: 0.95 },
+  show: { 
+    opacity: 1, 
+    x: 0, 
+    scale: 1,
+    transition: { type: "spring", stiffness: 200, damping: 20 } 
+  }
+};
+
 const TRANSLATIONS = {
   TR: {
     docs: "Dokümantasyon",
@@ -1443,8 +1489,13 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-6 py-4">
         {/* Headers Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-end">
-          <div className="lg:col-span-5 space-y-2">
+        <MotionDiv 
+          variants={revealContainer}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-end"
+        >
+          <MotionDiv variants={revealItemLeft} className="lg:col-span-5 space-y-2">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500">
                 <Scan className="w-5 h-5" />
@@ -1454,9 +1505,9 @@ export default function App() {
             <p className="text-[#718096] dark:text-gray-400 text-sm max-w-md ml-[52px]">
               {t.subtitle}
             </p>
-          </div>
+          </MotionDiv>
           <div className="lg:col-span-2"></div>
-          <div className="lg:col-span-5">
+          <MotionDiv variants={revealItemRight} className="lg:col-span-5">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
@@ -1499,13 +1550,18 @@ export default function App() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+          </MotionDiv>
+        </MotionDiv>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <MotionDiv 
+          variants={revealContainer}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
+        >
           
           {/* Bento Item 1: Upload/Preview (Left) */}
-          <div className="lg:col-span-5 space-y-6">
+          <MotionDiv variants={revealItemLeft} className="lg:col-span-5 space-y-6">
             <AnimatePresenceComponent mode="wait">
               {!image ? (
                 <MotionDiv
@@ -1579,54 +1635,62 @@ export default function App() {
                 {error}
               </div>
             )}
-          </div>
+          </MotionDiv>
 
           {/* Bento Item 2: Stats (Middle - Vertical) */}
           <div className="lg:col-span-2 flex flex-col gap-4">
-            {result && (
-              <>
-                <div className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
-                  <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                    <Camera className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.angle}</p>
-                    <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.camera.angle}</p>
-                  </div>
-                </div>
-                <div className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
-                  <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform">
-                    <Sun className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.light}</p>
-                    <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.lighting.quality}</p>
-                  </div>
-                </div>
-                <div className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
-                  <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-green-500 group-hover:scale-110 transition-transform">
-                    <User className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.ethnicity}</p>
-                    <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.subject.ethnicity}</p>
-                  </div>
-                </div>
-                <div className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
-                  <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
-                    <Layout className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.style}</p>
-                    <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.technical.style}</p>
-                  </div>
-                </div>
-              </>
-            )}
+            <AnimatePresenceComponent>
+              {result && (
+                <MotionDiv 
+                  variants={revealContainer}
+                  initial="hidden"
+                  animate="show"
+                  exit="hidden"
+                  className="flex flex-col gap-4"
+                >
+                  <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
+                    <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                      <Camera className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.angle}</p>
+                      <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.camera.angle}</p>
+                    </div>
+                  </MotionDiv>
+                  <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
+                    <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform">
+                      <Sun className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.light}</p>
+                      <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.lighting.quality}</p>
+                    </div>
+                  </MotionDiv>
+                  <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
+                    <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-green-500 group-hover:scale-110 transition-transform">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.ethnicity}</p>
+                      <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.subject.ethnicity}</p>
+                    </div>
+                  </MotionDiv>
+                  <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
+                    <div className="w-10 h-10 rounded-xl neu-pressed flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                      <Layout className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.style}</p>
+                      <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.technical.style}</p>
+                    </div>
+                  </MotionDiv>
+                </MotionDiv>
+              )}
+            </AnimatePresenceComponent>
           </div>
 
           {/* Bento Item 3: JSON Output (Right) */}
-          <div className="lg:col-span-5 flex flex-col space-y-6">
+          <MotionDiv variants={revealItemRight} className="lg:col-span-5 flex flex-col space-y-6">
             <div className="relative h-[500px] rounded-3xl neu-flat overflow-hidden flex flex-col">
               {!result && !isAnalyzing && (
                 <div className="flex-1 flex flex-col items-center justify-center text-[#718096] dark:text-gray-400 p-12 text-center">
@@ -1666,11 +1730,11 @@ export default function App() {
                 </div>
               )}
             </div>
-          </div>
+          </MotionDiv>
 
           {/* Bento Item 4: Suggestions & AI Chat (Side-by-Side) */}
           {result && (
-            <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <MotionDiv variants={revealItem} className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Suggestions */}
               <div className="neu-flat rounded-3xl overflow-hidden flex flex-col h-[450px]">
                 <div className="p-6 border-b border-[#c8cbd2]/20 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
@@ -1801,13 +1865,13 @@ export default function App() {
                   </button>
                 </div>
               </div>
-            </div>
+            </MotionDiv>
           )}
 
           {/* Generated Image Preview Card */}
           <AnimatePresenceComponent>
             {generatedImageUrl && (
-              <div className="lg:col-span-12">
+              <MotionDiv variants={revealItem} className="lg:col-span-12">
                 <MotionDiv
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1849,11 +1913,11 @@ export default function App() {
                     </div>
                   </div>
                 </MotionDiv>
-              </div>
+              </MotionDiv>
             )}
           </AnimatePresenceComponent>
 
-        </div>
+        </MotionDiv>
       </main>
 
       {/* Footer */}
