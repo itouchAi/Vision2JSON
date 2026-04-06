@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark-theme, .dark-theme *));
+
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
@@ -70,6 +72,113 @@ body {
     box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
     border: 1px solid rgba(0, 0, 0, 0.2);
   }
+
+  /* Liquid Theme Overrides - True 3D Glassmorphism */
+  .liquid-theme {
+    --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%);
+    --glass-border-top: rgba(255, 255, 255, 0.6);
+    --glass-border-left: rgba(255, 255, 255, 0.4);
+    --glass-border-right: rgba(255, 255, 255, 0.1);
+    --glass-border-bottom: rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    --glass-inner-light: inset 0 1px 2px rgba(255, 255, 255, 0.8), inset 0 4px 15px rgba(255, 255, 255, 0.2);
+    --glass-inner-dark: inset 0 -2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .liquid-theme.dark-theme {
+    --glass-bg: linear-gradient(135deg, rgba(20, 20, 30, 0.5) 0%, rgba(10, 10, 15, 0.2) 100%);
+    --glass-border-top: rgba(255, 255, 255, 0.2);
+    --glass-border-left: rgba(255, 255, 255, 0.15);
+    --glass-border-right: rgba(255, 255, 255, 0.02);
+    --glass-border-bottom: rgba(255, 255, 255, 0.01);
+    --glass-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.5);
+    --glass-inner-light: inset 0 1px 2px rgba(255, 255, 255, 0.3), inset 0 4px 15px rgba(255, 255, 255, 0.05);
+    --glass-inner-dark: inset 0 -2px 5px rgba(0, 0, 0, 0.4);
+  }
+
+  .liquid-theme .neu-flat {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(120%);
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
+    border: 1px solid transparent;
+    border-top-color: var(--glass-border-top);
+    border-left-color: var(--glass-border-left);
+    border-right-color: var(--glass-border-right);
+    border-bottom-color: var(--glass-border-bottom);
+    box-shadow: var(--glass-shadow), var(--glass-inner-light), var(--glass-inner-dark);
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0); /* Hardware acceleration */
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  }
+
+  /* The Glossy Reflection */
+  .liquid-theme .neu-flat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 40%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 1;
+  }
+
+  .liquid-theme.dark-theme .neu-flat::before {
+    background: linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%);
+  }
+
+  .liquid-theme .neu-pressed {
+    background: rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.3);
+    border-left-color: rgba(0, 0, 0, 0.3);
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+    border-right-color: rgba(255, 255, 255, 0.2);
+    box-shadow: inset 4px 4px 15px rgba(0, 0, 0, 0.2), inset -4px -4px 15px rgba(255, 255, 255, 0.1);
+    transform: translateZ(0);
+  }
+
+  .liquid-theme.dark-theme .neu-pressed {
+    background: rgba(0, 0, 0, 0.4);
+    border-top-color: rgba(0, 0, 0, 0.6);
+    border-left-color: rgba(0, 0, 0, 0.6);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    border-right-color: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 4px 4px 20px rgba(0, 0, 0, 0.6), inset -2px -2px 10px rgba(255, 255, 255, 0.02);
+  }
+
+  /* Fix Text Jitter & Add 3D Hover */
+  .liquid-theme button.neu-flat {
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+  }
+
+  .liquid-theme button.neu-flat:hover {
+    transform: translateY(-3px) translateZ(0);
+    box-shadow: 
+      0 15px 35px 0 rgba(0, 0, 0, 0.4), 
+      var(--glass-inner-light), 
+      var(--glass-inner-dark),
+      0 0 20px rgba(255, 255, 255, 0.2);
+  }
+
+  .liquid-theme.dark-theme button.neu-flat:hover {
+    box-shadow: 
+      0 15px 35px 0 rgba(0, 0, 0, 0.6), 
+      var(--glass-inner-light), 
+      var(--glass-inner-dark),
+      0 0 20px rgba(255, 255, 255, 0.05);
+  }
+
+  .liquid-theme button.neu-flat:active {
+    transform: translateY(1px) translateZ(0);
+    box-shadow: 
+      0 4px 15px 0 rgba(0, 0, 0, 0.2), 
+      var(--glass-inner-light), 
+      var(--glass-inner-dark);
+  }
   
   .glass-panel {
     background: rgba(255, 255, 255, 0.2);
@@ -81,6 +190,17 @@ body {
     background: rgba(26, 26, 46, 0.4);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  ::view-transition-group(root) {
+    animation-duration: 0.8s;
+    animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  ::view-transition-new(root),
+  ::view-transition-old(root) {
+    animation: none;
+    mix-blend-mode: normal;
   }
 
   .custom-scrollbar::-webkit-scrollbar {

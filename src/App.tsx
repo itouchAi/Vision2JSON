@@ -555,48 +555,12 @@ const MANUAL_CATEGORIES = [
 ];
 
 const LiquidBackground = () => (
-  <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-60 dark:opacity-30">
-    <MotionDiv
-      animate={{
-        x: [0, 150, 0],
-        y: [0, -100, 0],
-        scale: [1, 1.5, 1],
-        rotate: [0, 180, 0],
-      }}
-      transition={{
-        duration: 25,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-      className="absolute -top-[20%] -left-[20%] w-[60%] h-[60%] bg-blue-400/40 rounded-full blur-[120px]"
-    />
-    <MotionDiv
-      animate={{
-        x: [0, -120, 0],
-        y: [0, 180, 0],
-        scale: [1, 1.3, 1],
-        rotate: [0, -180, 0],
-      }}
-      transition={{
-        duration: 30,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-      className="absolute top-[30%] -right-[20%] w-[50%] h-[50%] bg-orange-400/40 rounded-full blur-[120px]"
-    />
-    <MotionDiv
-      animate={{
-        x: [0, 80, 0],
-        y: [0, 120, 0],
-        scale: [1, 1.6, 1],
-      }}
-      transition={{
-        duration: 22,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-      className="absolute -bottom-[20%] left-[10%] w-[70%] h-[70%] bg-purple-400/30 rounded-full blur-[120px]"
-    />
+  <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+    {/* Base Solid Color (Magenta) */}
+    <div className="absolute inset-0 bg-[#a6006a]"></div>
+    
+    {/* Dark fade at the top for the banner area - shorter and sharper */}
+    <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-[#05050a] to-transparent"></div>
   </div>
 );
 
@@ -633,6 +597,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [themeMode, setThemeMode] = useState<'classic' | 'liquid'>('classic');
   const [themeColor, setThemeColor] = useState('#e6e9f0');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [language, setLanguage] = useState<'TR' | 'ENG'>('TR');
@@ -718,14 +683,22 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (isDarkMode) {
+    if (isDarkMode || themeMode === 'liquid') {
       document.body.classList.add('dark-theme');
-      setThemeColor('#1e2128');
+      setThemeColor(themeMode === 'liquid' ? '#05050a' : '#1e2128');
     } else {
       document.body.classList.remove('dark-theme');
       setThemeColor('#e6e9f0');
     }
-  }, [isDarkMode]);
+  }, [isDarkMode, themeMode]);
+
+  useEffect(() => {
+    if (themeMode === 'liquid') {
+      document.body.classList.add('liquid-theme');
+    } else {
+      document.body.classList.remove('liquid-theme');
+    }
+  }, [themeMode]);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--bg-base', themeColor);
@@ -1310,20 +1283,71 @@ export default function App() {
     setGeneratedImageUrl(null);
   };
 
+  const toggleThemeMode = (e: React.MouseEvent) => {
+    const isLiquid = themeMode === 'liquid';
+    const nextTheme = isLiquid ? 'classic' : 'liquid';
+
+    // @ts-ignore - View Transitions API
+    if (!document.startViewTransition) {
+      setThemeMode(nextTheme);
+      return;
+    }
+
+    const x = e.clientX;
+    const y = e.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    // @ts-ignore
+    const transition = document.startViewTransition(() => {
+      setThemeMode(nextTheme);
+    });
+
+    transition.ready.then(() => {
+      const clipPath = [
+        `circle(0px at ${x}px ${y}px)`,
+        `circle(${endRadius}px at ${x}px ${y}px)`,
+      ];
+
+      document.documentElement.animate(
+        {
+          clipPath: isLiquid ? [...clipPath].reverse() : clipPath,
+        },
+        {
+          duration: 800,
+          easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+          pseudoElement: isLiquid
+            ? "::view-transition-old(root)"
+            : "::view-transition-new(root)",
+        }
+      );
+    });
+  };
+
   return (
     <div className={cn(
       "min-h-screen transition-colors duration-500",
-      isDarkMode ? "bg-[#0f1115] text-white" : "bg-[#e6e9f0] text-[#2d3748]"
+      (isDarkMode || themeMode === 'liquid') ? "text-white" : "text-[#2d3748]",
+      themeMode !== 'liquid' ? (isDarkMode ? "bg-[#0f1115]" : "bg-[#e6e9f0]") : "bg-transparent"
     )}>
-      <LiquidBackground />
-      {/* Header */}
-      <header className="neu-flat sticky top-0 z-50 mb-8 border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      {themeMode === 'liquid' && <LiquidBackground />}
+      <header className={cn(
+        "sticky top-0 z-50 mb-8 transition-colors duration-500",
+        themeMode === 'liquid' 
+          ? "bg-[#05050a] border-none" 
+          : "border-b neu-flat border-white/5"
+      )}>
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm">
               <Maximize2 className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-[#2d3748] dark:text-white">
+            <h1 className={cn(
+              "text-xl font-bold tracking-tight",
+              themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white"
+            )}>
               Vision2JSON
             </h1>
           </div>
@@ -1420,6 +1444,18 @@ export default function App() {
 
               {/* Theme & Color Toggle */}
               <div className="flex items-center gap-2">
+                {/* Liquid Theme Toggle */}
+                <button
+                  onClick={toggleThemeMode}
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center transition-all relative overflow-hidden",
+                    themeMode === 'liquid' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
+                  )}
+                  title={themeMode === 'liquid' ? "Klasik Temaya Dön" : "Likit Temaya Geç"}
+                >
+                  <Sparkles className="w-4 h-4" />
+                </button>
+
                 <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all relative overflow-hidden"
@@ -1485,6 +1521,9 @@ export default function App() {
             </div>
           </div>
         </div>
+        {themeMode === 'liquid' && (
+          <div className="absolute top-full left-0 right-0 h-16 bg-gradient-to-b from-[#05050a] to-transparent pointer-events-none" />
+        )}
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-4">
@@ -1500,9 +1539,9 @@ export default function App() {
               <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500">
                 <Scan className="w-5 h-5" />
               </div>
-              <h2 className="text-xl font-bold tracking-tight text-[#2d3748] dark:text-white">{t.title}</h2>
+              <h2 className={cn("text-xl font-bold tracking-tight", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.title}</h2>
             </div>
-            <p className="text-[#718096] dark:text-gray-400 text-sm max-w-md ml-[52px]">
+            <p className={cn("text-sm max-w-md ml-[52px]", themeMode === 'liquid' ? "text-white/80" : "text-[#718096] dark:text-gray-400")}>
               {t.subtitle}
             </p>
           </MotionDiv>
@@ -1513,7 +1552,7 @@ export default function App() {
                 <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
                   <Code className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-[#2d3748] dark:text-white text-xl">{t.jsonOutput}</h3>
+                <h3 className={cn("font-bold text-xl", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.jsonOutput}</h3>
               </div>
               <div className="grid grid-cols-4 gap-3 w-full">
                 <button
@@ -1653,8 +1692,8 @@ export default function App() {
                       <Camera className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.angle}</p>
-                      <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.camera.angle}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.angle}</p>
+                      <p className={cn("text-xs font-bold", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.camera.angle}</p>
                     </div>
                   </MotionDiv>
                   <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
@@ -1662,8 +1701,8 @@ export default function App() {
                       <Sun className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.light}</p>
-                      <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.lighting.quality}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.light}</p>
+                      <p className={cn("text-xs font-bold", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.lighting.quality}</p>
                     </div>
                   </MotionDiv>
                   <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
@@ -1671,8 +1710,8 @@ export default function App() {
                       <User className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.ethnicity}</p>
-                      <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.subject.ethnicity}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.ethnicity}</p>
+                      <p className={cn("text-xs font-bold", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.subject.ethnicity}</p>
                     </div>
                   </MotionDiv>
                   <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
@@ -1680,8 +1719,8 @@ export default function App() {
                       <Layout className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-wider">{t.style}</p>
-                      <p className="text-xs font-bold text-[#2d3748] dark:text-white">{result.technical.style}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.style}</p>
+                      <p className={cn("text-xs font-bold", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.technical.style}</p>
                     </div>
                   </MotionDiv>
                 </MotionDiv>
@@ -1723,7 +1762,7 @@ export default function App() {
                     animate={{ opacity: 1 }}
                     className="p-6 font-mono text-[11px] leading-relaxed flex-1"
                   >
-                    <pre className="text-[#4a5568] dark:text-gray-300 whitespace-pre-wrap">
+                    <pre className={cn("whitespace-pre-wrap", themeMode === 'liquid' ? "text-white" : "text-[#4a5568] dark:text-gray-300")}>
                       {JSON.stringify(result, null, 2)}
                     </pre>
                   </MotionDiv>
@@ -1740,7 +1779,7 @@ export default function App() {
                 <div className="p-6 border-b border-[#c8cbd2]/20 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-2">
                     <Wand2 className="w-5 h-5 text-blue-500" />
-                    <h4 className="text-sm font-bold text-[#2d3748] dark:text-white uppercase tracking-wider">{t.suggestions}</h4>
+                    <h4 className={cn("text-sm font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.suggestions}</h4>
                   </div>
                 </div>
                 
@@ -1748,7 +1787,7 @@ export default function App() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {Object.entries(result.suggestions).map(([key, options]) => (
                       <div key={key} className="space-y-3">
-                        <label className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-widest ml-1">
+                        <label className={cn("text-[10px] font-bold uppercase tracking-widest ml-1", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>
                           {currentSuggestionLabels[key as keyof typeof currentSuggestionLabels] || key}
                         </label>
                         <div className="flex flex-wrap gap-2">
@@ -1795,11 +1834,11 @@ export default function App() {
                   <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-yellow-500">
                     <Zap className="w-5 h-5" />
                   </div>
-                  <h4 className="text-sm font-bold text-[#2d3748] dark:text-white uppercase tracking-wider">{t.chatTitle}</h4>
+                  <h4 className={cn("text-sm font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.chatTitle}</h4>
                   {chatMessages.length > 0 && (
                     <button 
                       onClick={() => setChatMessages([])} 
-                      className="ml-auto text-[10px] text-[#718096] hover:text-red-500 font-bold uppercase tracking-widest transition-colors"
+                      className={cn("ml-auto text-[10px] hover:text-red-500 font-bold uppercase tracking-widest transition-colors", themeMode === 'liquid' ? "text-white/70" : "text-[#718096]")}
                     >
                       Temizle
                     </button>
@@ -1812,7 +1851,7 @@ export default function App() {
                       <div className="w-16 h-16 rounded-full neu-pressed flex items-center justify-center text-blue-500">
                         <Wand2 className="w-8 h-8" />
                       </div>
-                      <p className="text-sm text-[#718096] max-w-xs">{t.chatContext}</p>
+                      <p className={cn("text-sm max-w-xs", themeMode === 'liquid' ? "text-white/80" : "text-[#718096]")}>{t.chatContext}</p>
                     </div>
                   )}
                   {chatMessages.map((msg, idx) => (
@@ -1829,14 +1868,14 @@ export default function App() {
                         "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",
                         msg.role === 'user' 
                           ? "bg-blue-600 text-white rounded-tr-none" 
-                          : "neu-flat text-[#2d3748] dark:text-gray-200 rounded-tl-none border border-white/5"
+                          : cn("neu-flat rounded-tl-none border border-white/5", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-gray-200")
                       )}>
                         {msg.text}
                       </div>
                     </MotionDiv>
                   ))}
                   {isChatLoading && (
-                    <div className="flex items-center gap-3 text-[#718096] ml-2">
+                    <div className={cn("flex items-center gap-3 ml-2", themeMode === 'liquid' ? "text-white/70" : "text-[#718096]")}>
                       <div className="flex gap-1">
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />
@@ -1886,7 +1925,7 @@ export default function App() {
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
                       />
-                      <div className="absolute top-4 left-4 px-4 py-2 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] uppercase tracking-wider shadow-sm">
+                      <div className="absolute top-4 left-4 px-4 py-2 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] dark:text-white uppercase tracking-wider shadow-sm">
                         {t.generatedImageBadge}
                       </div>
                     </div>
@@ -2207,7 +2246,7 @@ export default function App() {
                             referrerPolicy="no-referrer"
                           />
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="px-4 py-2 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] uppercase tracking-wider shadow-sm">
+                            <div className="px-4 py-2 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] dark:text-white uppercase tracking-wider shadow-sm">
                               DNA Kaynağı
                             </div>
                           </div>
@@ -2296,7 +2335,7 @@ export default function App() {
                               referrerPolicy="no-referrer"
                             />
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="px-3 py-1 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] uppercase tracking-wider shadow-sm">
+                              <div className="px-3 py-1 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] dark:text-white uppercase tracking-wider shadow-sm">
                                 DNA Kaynağı
                               </div>
                             </div>
@@ -2336,7 +2375,7 @@ export default function App() {
                                   )}
                                 </div>
                               )}
-                              <div className="absolute top-3 left-3 px-2 py-0.5 glass-panel rounded-md text-[8px] font-bold text-[#2d3748] uppercase shadow-sm">
+                              <div className="absolute top-3 left-3 px-2 py-0.5 glass-panel rounded-md text-[8px] font-bold text-[#2d3748] dark:text-white uppercase shadow-sm">
                                 Poz {i + 1}
                               </div>
                             </div>
@@ -2404,7 +2443,7 @@ function GeneratedImageModal({ url, onClose, t }: { url: string, onClose: () => 
         <div className="absolute bottom-4 left-4 right-4 p-4 sm:p-6 glass-panel rounded-xl sm:rounded-2xl">
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
-              <p className="text-[#2d3748] dark:text-[#f8fafc] font-bold text-lg sm:text-xl tracking-tight">{t.generatedImageTitle}</p>
+              <p className="text-[#2d3748] dark:text-white font-bold text-lg sm:text-xl tracking-tight">{t.generatedImageTitle}</p>
               <p className="text-[#718096] dark:text-[#94a3b8] text-xs sm:text-sm max-w-md font-medium hidden sm:block">{t.generatedImageDesc}</p>
             </div>
             <button
