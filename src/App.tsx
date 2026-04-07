@@ -1808,6 +1808,35 @@ export default function App() {
                             </button>
                           ))}
                         </div>
+                        {key === 'clothing' && (
+                          <div className="flex items-center gap-3 mt-3 p-2 neu-flat rounded-xl border border-white/5">
+                            <input
+                              type="color"
+                              ref={clothingColorRef}
+                              onChange={(e) => setSelectedSuggestions(prev => ({
+                                ...prev,
+                                clothingColor: e.target.value
+                              }))}
+                              className="w-6 h-6 rounded cursor-pointer border-0 p-0 bg-transparent"
+                            />
+                            <span className={cn("text-[10px] font-bold uppercase tracking-widest", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>
+                              {t.clothingColor}
+                            </span>
+                            {selectedSuggestions.clothingColor && (
+                              <button
+                                onClick={() => setSelectedSuggestions(prev => {
+                                  const next = { ...prev };
+                                  delete next.clothingColor;
+                                  if (clothingColorRef.current) clothingColorRef.current.value = '#000000';
+                                  return next;
+                                })}
+                                className="ml-auto text-[9px] text-red-500 hover:text-red-600 font-bold uppercase tracking-widest"
+                              >
+                                {t.cancel}
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
