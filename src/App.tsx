@@ -1328,9 +1328,8 @@ export default function App() {
 
   return (
     <div className={cn(
-      "min-h-screen transition-colors duration-500",
-      (isDarkMode || themeMode === 'liquid') ? "text-white" : "text-[#2d3748]",
-      themeMode !== 'liquid' ? (isDarkMode ? "bg-[#0f1115]" : "bg-[#e6e9f0]") : "bg-transparent"
+      "min-h-screen transition-colors duration-500 bg-transparent",
+      (isDarkMode || themeMode === 'liquid') ? "text-white" : "text-[#2d3748]"
     )}>
       {themeMode === 'liquid' && <LiquidBackground />}
       <header className={cn(
@@ -1630,7 +1629,7 @@ export default function App() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="relative h-[500px] rounded-3xl overflow-hidden neu-flat p-4 group"
                 >
-                  <div className="w-full h-full rounded-2xl overflow-hidden bg-[#f0f2f5] dark:bg-[#1a1d23] relative">
+                  <div className="w-full h-full rounded-2xl overflow-hidden bg-transparent relative">
                     <img 
                       src={image} 
                       alt="Preview" 
@@ -1783,7 +1782,7 @@ export default function App() {
                   </div>
                 </div>
                 
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#f8fafc]/50 dark:bg-[#1a1d23]/50">
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white/40 dark:bg-black/20">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {Object.entries(result.suggestions).map(([key, options]) => (
                       <div key={key} className="space-y-3">
@@ -1845,7 +1844,7 @@ export default function App() {
                   )}
                 </div>
                 
-                <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 bg-[#f8fafc]/30 dark:bg-[#1a1d23]/30">
+                <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 bg-white/20 dark:bg-black/10">
                   {chatMessages.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 opacity-50">
                       <div className="w-16 h-16 rounded-full neu-pressed flex items-center justify-center text-blue-500">
@@ -1981,7 +1980,10 @@ export default function App() {
       {/* Influencer Studio Modal */}
       <AnimatePresenceComponent>
         {isStudioOpen && result && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#e6e9f0]/80 dark:bg-[#1a202c]/80 backdrop-blur-md">
+          <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--bg-base) 80%, transparent)' }}
+          >
             <MotionDiv
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -2008,7 +2010,7 @@ export default function App() {
               </div>
 
               {/* Modal Content */}
-              <div className="flex-1 overflow-auto p-4 sm:p-8 grid lg:grid-cols-5 gap-8 bg-[#e6e9f0] dark:bg-[#1a202c]">
+              <div className="flex-1 overflow-auto p-4 sm:p-8 grid lg:grid-cols-5 gap-8 neu-base">
                 {/* Controls - 2 Columns */}
                 <div className="lg:col-span-2 space-y-8">
                   {/* Generation Method Selector */}
@@ -2354,7 +2356,10 @@ export default function App() {
                                     className="w-full h-full object-cover rounded-xl"
                                     referrerPolicy="no-referrer"
                                   />
-                                  <div className="absolute inset-0 bg-[#e6e9f0]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                                  <div 
+                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl"
+                                    style={{ backgroundColor: 'color-mix(in srgb, var(--bg-base) 40%, transparent)' }}
+                                  >
                                     <a 
                                       href={studioImages[i]!} 
                                       download={`variation-${i + 1}.png`}
@@ -2418,7 +2423,8 @@ function GeneratedImageModal({ url, onClose, t }: { url: string, onClose: () => 
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-[#e6e9f0]/90 dark:bg-[#1a202c]/90 backdrop-blur-md cursor-zoom-out"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 backdrop-blur-md cursor-zoom-out"
+      style={{ backgroundColor: 'color-mix(in srgb, var(--bg-base) 90%, transparent)' }}
     >
       <MotionDiv
         initial={{ scale: 0.9, opacity: 0 }}
