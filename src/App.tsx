@@ -31,6 +31,7 @@ import { motion, AnimatePresence } from 'motion/react';
 const MotionDiv = motion.div as any;
 const AnimatePresenceComponent = AnimatePresence as any;
 import { cn } from './lib/utils';
+import { PoseStudioModal } from './components/PoseStudio';
 
 const revealContainer = {
   hidden: { opacity: 0 },
@@ -571,6 +572,10 @@ export default function App() {
   const [isRevising, setIsRevising] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [isPoseStudioOpen, setIsPoseStudioOpen] = useState(false);
+  const [poseScreenshot, setPoseScreenshot] = useState<string | null>(null);
+  const [lastPoseData, setLastPoseData] = useState<any>(null);
+  const [isPoseComparisonOpen, setIsPoseComparisonOpen] = useState(false);
   const [isStudioGenerating, setIsStudioGenerating] = useState(false);
   const [studioImageUrl, setStudioImageUrl] = useState<string | null>(null);
   const [studioImages, setStudioImages] = useState<(string | null)[]>([]);
@@ -1201,6 +1206,87 @@ export default function App() {
     }
   };
 
+  const generateFromPoseStudio = async (data: { prompt: string, additionalDetails: string, useReference: boolean, poseScreenshot: string | null }) => {
+    setIsGeneratingImage(true);
+    setError(null);
+    setGeneratedImageUrl(null);
+    setPoseScreenshot(data.poseScreenshot);
+    setLastPoseData(data);
+    // Don't open the normal modal, we will open the comparison modal after generation
+    // setIsModalOpen(true);
+
+    try {
+      // Create a descriptive prompt from the JSON and additional details
+      const promptResponse = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [
+          {
+            parts: [
+              { text: `Convert this 3D Pose Studio data into a highly descriptive paragraph prompt for an AI image generator. 
+              The prompt should be in English and focus on the pose, camera angle, lighting, and any additional details provided.
+              
+              Pose JSON: ${data.prompt}
+              
+              Additional Details: ${data.additionalDetails}
+              
+              Create a cohesive, hyper-realistic image prompt.` }
+            ]
+          }
+        ]
+      });
+
+      const descriptivePrompt = promptResponse.text;
+
+      // Prepare contents for image generation
+      const contents: any[] = [
+        {
+          parts: [
+            { text: descriptivePrompt || "A high quality photo based on the provided details." }
+          ]
+        }
+      ];
+
+      // Add reference image if requested and available
+      if (data.useReference && image) {
+        const base64Data = image.split(',')[1];
+        contents[0].parts.push({
+          inlineData: { data: base64Data, mimeType: "image/jpeg" }
+        });
+        contents[0].parts[0].text = `[CRITICAL INSTRUCTION: The attached image is the EXACT subject. You MUST preserve their exact facial features, identity, ethnicity, and hair. Do NOT generate a generic person. Match the face perfectly.]\n\n` + contents[0].parts[0].text + " Use the provided image as a strong reference for the character's appearance, face, and clothing style, but apply the new pose, lighting, and camera angles described.";
+      }
+
+      // Generate the image
+      const imageResponse = await genAI.models.generateContent({
+        model: "gemini-2.5-flash-image",
+        contents: contents,
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1"
+          }
+        }
+      });
+
+      for (const part of imageResponse.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          const base64Data = part.inlineData.data;
+          setGeneratedImageUrl(`data:image/png;base64,${base64Data}`);
+          setIsPoseComparisonOpen(true);
+          break;
+        }
+      }
+    } catch (err: any) {
+      console.error("Image generation failed:", err);
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("429") || errMsg.includes("quota")) {
+        setError("API kotanız doldu. Lütfen Google AI Studio faturalandırma detaylarınızı kontrol edin.");
+      } else {
+        setError("Görsel üretilirken bir hata oluştu.");
+      }
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   const reviseAnalysis = async () => {
     if (!result || Object.keys(selectedSuggestions).length === 0) return;
 
@@ -1351,6 +1437,13 @@ export default function App() {
             </h1>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsPoseStudioOpen(true)}
+              className="flex items-center gap-2 px-4 h-10 neu-flat rounded-xl text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
+            >
+              <User className="w-4 h-4" />
+              3D Pose Studio
+            </button>
             <a 
               href="https://github.com" 
               target="_blank" 
@@ -2006,6 +2099,32 @@ export default function App() {
         )}
       </AnimatePresenceComponent>
 
+      <AnimatePresenceComponent>
+        {generatedImageUrl && isPoseComparisonOpen && poseScreenshot && (
+          <PoseComparisonModal 
+            generatedUrl={generatedImageUrl} 
+            poseUrl={poseScreenshot} 
+            onClose={() => setIsPoseComparisonOpen(false)} 
+            t={t}
+            image={image}
+            onImageUpload={setImage}
+            onRetry={(useReference) => {
+              if (lastPoseData) {
+                generateFromPoseStudio({ ...lastPoseData, useReference });
+              }
+            }}
+          />
+        )}
+      </AnimatePresenceComponent>
+
+      <PoseStudioModal 
+        isOpen={isPoseStudioOpen} 
+        onClose={() => setIsPoseStudioOpen(false)} 
+        image={image}
+        onImageUpload={setImage}
+        onGenerate={generateFromPoseStudio}
+      />
+
       {/* Influencer Studio Modal */}
       <AnimatePresenceComponent>
         {isStudioOpen && result && (
@@ -2489,6 +2608,113 @@ function GeneratedImageModal({ url, onClose, t }: { url: string, onClose: () => 
             </button>
           </div>
         </div>
+      </MotionDiv>
+    </MotionDiv>
+  );
+}
+
+function PoseComparisonModal({ generatedUrl, poseUrl, onClose, t, onRetry, image, onImageUpload }: { generatedUrl: string, poseUrl: string, onClose: () => void, t: any, onRetry: (useReference: boolean) => void, image: string | null, onImageUpload: (img: string | null) => void }) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        onImageUpload(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <MotionDiv
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 backdrop-blur-md cursor-zoom-out"
+      style={{ backgroundColor: 'color-mix(in srgb, var(--bg-base) 90%, transparent)' }}
+    >
+      <MotionDiv
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        className="relative flex flex-col neu-base rounded-2xl sm:rounded-3xl overflow-hidden shadow-[20px_20px_60px_#c8cbd2,-20px_-20px_60px_#ffffff] dark:shadow-[10px_10px_30px_#121418,-10px_-10px_30px_#2a2e39] cursor-default p-4 sm:p-8 w-full max-w-6xl h-[90vh]"
+      >
+        <h2 className="text-2xl font-bold text-center mb-6 text-[#2d3748] dark:text-white">Poz Karşılaştırması</h2>
+        
+        <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
+          {/* 3D Pose Reference */}
+          <div className="flex-1 flex flex-col gap-3">
+            <h3 className="font-bold text-center text-[#718096] dark:text-gray-500 uppercase tracking-widest text-sm">3D Poz Referansı</h3>
+            <div className="flex-1 neu-pressed rounded-2xl overflow-hidden p-2 relative">
+              <img src={poseUrl} alt="3D Pose" className="w-full h-full object-contain rounded-xl" />
+            </div>
+          </div>
+          
+          {/* Generated Image */}
+          <div className="flex-1 flex flex-col gap-3">
+            <h3 className="font-bold text-center text-blue-500 uppercase tracking-widest text-sm">Üretilen Görsel</h3>
+            <div className="flex-1 neu-flat rounded-2xl overflow-hidden p-2 relative">
+              <img src={generatedUrl} alt="Generated" className="w-full h-full object-contain rounded-xl" referrerPolicy="no-referrer" />
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Actions Bar */}
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 p-4 neu-flat rounded-2xl">
+          {/* Reference Controls */}
+          <div className="flex items-center gap-4">
+            {image ? (
+               <div className="flex items-center gap-3">
+                 <img src={image} className="w-12 h-12 rounded-lg object-cover" alt="Reference" />
+                 <div className="flex flex-col gap-1">
+                   <span className="text-xs font-bold text-green-500">Referans Aktif</span>
+                   <div className="flex gap-2">
+                     <label className="text-[10px] cursor-pointer text-blue-500 hover:text-blue-600 font-bold uppercase tracking-wider">
+                       Değiştir
+                       <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                     </label>
+                     <button onClick={() => onImageUpload(null)} className="text-[10px] text-red-500 hover:text-red-600 font-bold uppercase tracking-wider">Kaldır</button>
+                   </div>
+                 </div>
+               </div>
+            ) : (
+               <label className="flex items-center gap-2 px-4 py-2 neu-pressed rounded-xl cursor-pointer hover:text-blue-500 transition-colors text-sm font-bold text-[#718096] dark:text-gray-400">
+                 <Upload className="w-4 h-4" />
+                 Referans Ekle
+                 <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+               </label>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => onRetry(!!image)} 
+              className="px-6 py-3 neu-flat rounded-xl font-bold flex items-center gap-2 text-[#4a5568] dark:text-gray-300 hover:text-blue-500 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Yeniden Dene
+            </button>
+            <a 
+              href={generatedUrl} 
+              download="pose-generated.png" 
+              className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-lg hover:shadow-blue-500/25"
+            >
+              <Download className="w-4 h-4" />
+              İndir
+            </a>
+          </div>
+        </div>
+        
+        {/* Top Right Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 neu-flat text-red-500 rounded-full flex items-center justify-center hover:text-red-600 active:neu-pressed transition-all z-50"
+        >
+          <X className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
       </MotionDiv>
     </MotionDiv>
   );
