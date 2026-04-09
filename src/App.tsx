@@ -285,6 +285,34 @@ const TRANSLATIONS = {
 // Initialize Gemini API
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
+export const translatePromptToTurkish = async (jsonPrompt: string) => {
+  try {
+    const response = await genAI.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [{ role: "user", parts: [{ text: `Aşağıdaki JSON verisi bir 3D sahne ve karakter pozunu tanımlıyor. Lütfen bu JSON'u okuyarak, oluşturulacak fotoğrafı betimleyen akıcı, tek bir Türkçe paragraf yaz. Sadece betimlemeyi ver, ek açıklama yapma.\n\nJSON:\n${jsonPrompt}` }] }]
+    });
+    return response.text || "Özet oluşturulamadı.";
+  } catch (e) {
+    console.error("Translation error:", e);
+    return "Özet oluşturulurken bir hata oluştu.";
+  }
+};
+
+export const enhancePromptWithAI = async (jsonPrompt: string, userInput: string) => {
+  try {
+    const response = await genAI.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [{ role: "user", parts: [{ text: `Aşağıdaki JSON bir 3D sahne promptudur. Kullanıcı bu sahneye şu özellikleri eklemek/değiştirmek istiyor: "${userInput}". Lütfen JSON yapısını bozmadan, kullanıcının isteklerini uygun alanlara (örneğin 'subject.clothing', 'environment', 'additional_details' gibi yeni alanlar ekleyerek veya mevcutları güncelleyerek) entegre et. SADECE geçerli ve güncellenmiş JSON çıktısı ver. Markdown (\`\`\`json) KULLANMA.\n\nMevcut JSON:\n${jsonPrompt}` }] }]
+    });
+    let text = response.text || jsonPrompt;
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return text;
+  } catch (e) {
+    console.error("Enhancement error:", e);
+    return jsonPrompt;
+  }
+};
+
 interface AnalysisResult {
   camera: {
     angle: string;
@@ -2123,6 +2151,8 @@ export default function App() {
         image={image}
         onImageUpload={setImage}
         onGenerate={generateFromPoseStudio}
+        onTranslatePrompt={translatePromptToTurkish}
+        onEnhancePrompt={enhancePromptWithAI}
       />
 
       {/* Influencer Studio Modal */}
