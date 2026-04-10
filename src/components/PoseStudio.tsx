@@ -478,7 +478,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden relative flex">
+        <div className="flex-1 overflow-hidden relative w-full h-full block">
           <AnimatePresence mode="wait">
             {step === 'gender' && (
               <motion.div 
@@ -486,7 +486,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex-1 flex flex-col items-center justify-center p-8 space-y-8"
+                className="absolute inset-0 flex flex-col items-center justify-center p-8 space-y-8 overflow-y-auto w-full h-full"
               >
                 <h3 className="text-2xl font-bold">Model Cinsiyetini Seçin</h3>
                 <div className="flex gap-8">
@@ -518,10 +518,10 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex-1 flex flex-col lg:flex-row h-full"
+                className="absolute inset-0 flex flex-col lg:flex-row overflow-hidden w-full h-full"
               >
                 {/* 3D Canvas Area */}
-                <div className="flex-1 relative bg-[#1a1d23]" ref={canvasContainerRef}>
+                <div className="flex-1 relative bg-[#1a1d23] min-w-0 min-h-0" ref={canvasContainerRef}>
                   <Canvas shadows gl={{ preserveDrawingBuffer: true }}>
                     <Scene 
                       shotSize={shotSize} 
@@ -539,7 +539,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                 </div>
 
                 {/* Controls Sidebar */}
-                <div className="w-full lg:w-80 border-l border-white/10 bg-black/5 p-6 overflow-y-auto flex flex-col gap-6">
+                <div className="w-full lg:w-80 flex-shrink-0 border-l border-white/10 bg-black/5 p-6 overflow-y-auto flex flex-col gap-6 min-w-0 min-h-0">
                   
                   {/* Semantic Camera Controls */}
                   <div className="space-y-4">
@@ -595,8 +595,8 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                         <Info className="w-4 h-4 text-blue-500" />
                         <span className="text-xs font-bold text-blue-500 uppercase tracking-wider">Canlı Prompt</span>
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-300 italic">
-                        "{SHOT_SIZES[shotSize].prompt}. {HORIZONTAL_ANGLES[hAngle].prompt}. {VERTICAL_ANGLES[vAngle].prompt}."
+                      <p className="text-xs text-gray-600 dark:text-gray-300 italic break-words whitespace-pre-wrap">
+                        {generateSemanticDescription()}
                       </p>
                     </div>
                   </div>
@@ -679,7 +679,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex-1 flex flex-col items-center justify-center p-8 space-y-8"
+                className="absolute inset-0 flex flex-col items-center justify-center p-8 space-y-8 overflow-y-auto"
               >
                 <h3 className="text-2xl font-bold">Üretim Seçenekleri</h3>
                 
@@ -758,7 +758,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full gap-4 overflow-y-auto"
+                className="absolute inset-0 flex flex-col p-6 max-w-5xl mx-auto w-full gap-4 overflow-y-auto"
               >
                 <h3 className="text-2xl font-bold flex items-center gap-3">
                   <Wand2 className="w-6 h-6 text-purple-500" />
