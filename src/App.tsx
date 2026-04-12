@@ -673,23 +673,63 @@ export default function App() {
   const [bottomInput, setBottomInput] = useState('');
   const [isBottomListening, setIsBottomListening] = useState(false);
   const bottomRecognitionRef = useRef<any>(null);
+  const [jsonText, setJsonText] = useState("");
+  const [voicePromptState, setVoicePromptState] = useState<'idle' | 'awaiting_random'>('idle');
+  const [showEmptyPromptWarning, setShowEmptyPromptWarning] = useState(false);
   
   const userPromptRef = useRef(userPrompt);
   useEffect(() => { userPromptRef.current = userPrompt; }, [userPrompt]);
 
+  const voicePromptStateRef = useRef(voicePromptState);
+  useEffect(() => { voicePromptStateRef.current = voicePromptState; }, [voicePromptState]);
+
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
+
+  useEffect(() => {
+    if (result && activeTab === 'json' && !isRevising) {
+      setJsonText(JSON.stringify(result, null, 2));
+    }
+  }, [result, activeTab, isRevising]);
+
+  const generateRandomImage = async () => {
+    const randomPrompt = "A hyper-realistic portrait of the subject in a random cinematic environment, wearing random stylish clothes, shot from a random dynamic camera angle with dramatic lighting.";
+    handleGenerateFromBottom(randomPrompt);
+  };
+
+  const highlightText = (text: string, wordsToHighlight: (string | undefined)[]) => {
+    if (!text) return "";
+    let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    wordsToHighlight.filter(Boolean).forEach(word => {
+      if (!word) return;
+      const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      html = html.replace(regex, `<mark class="bg-blue-500/30 text-transparent rounded px-1">$1</mark>`);
+    });
+    return html;
+  };
+
   const handleGenerateFromBottom = async (promptText: string) => {
-    if (!promptText.trim()) return;
+    if (!promptText.trim() && activeTab === 'prompt') return;
     setIsGeneratingImage(true);
     setError(null);
     setGeneratedImageUrl(null);
 
     try {
-      let parts: any[] = [{ text: promptText }];
+      let finalPrompt = promptText;
+      if (activeTab === 'json') {
+         const promptResponse = await genAI.models.generateContent({
+           model: "gemini-3-flash-preview",
+           contents: [{ parts: [{ text: `Convert this detailed image analysis JSON into a single, highly descriptive paragraph prompt for an AI image generator. JSON: ${promptText}` }] }]
+         });
+         finalPrompt = promptResponse.text || "A high quality photo based on the provided details.";
+      }
+
+      let parts: any[] = [{ text: finalPrompt }];
       if (image) {
         const base64Data = image.split(',')[1];
         parts = [
           { inlineData: { data: base64Data, mimeType: "image/jpeg" } },
-          { text: `[CRITICAL INSTRUCTION: Use the provided image as a STRICT character reference. Preserve the exact facial features and identity.]\n\n${promptText}` }
+          { text: `[CRITICAL INSTRUCTION: Use the provided image as a STRICT character reference. Preserve the exact facial features and identity.]\n\n${finalPrompt}` }
         ];
       }
 
@@ -739,13 +779,17 @@ export default function App() {
   };
 
   const handleBottomSubmit = () => {
-    if (!bottomInput.trim()) return;
+    const suggestionsText = Object.values(selectedSuggestions).filter(Boolean).join(", ");
+    const fullInstruction = [bottomInput, suggestionsText].filter(Boolean).join(". ");
+    
+    if (!fullInstruction.trim()) return;
+
     if (activeTab === 'prompt') {
-      setUserPrompt(prev => prev + (prev ? " " : "") + bottomInput);
+      setUserPrompt(prev => prev + (prev ? " " : "") + fullInstruction);
       setBottomInput("");
     } else {
       if (result) {
-        reviseAnalysisWithText(bottomInput);
+        reviseAnalysisWithText(fullInstruction);
         setBottomInput("");
       }
     }
@@ -772,15 +816,43 @@ export default function App() {
         }
 
         if (finalTranscript) {
-          setBottomInput(prev => {
-            const newText = prev + " " + finalTranscript.trim();
-            if (newText.toLowerCase().includes('görsel oluştur')) {
-              const cleanedText = newText.replace(/görsel oluştur/ig, '').trim();
-              handleGenerateFromBottom(userPromptRef.current + " " + cleanedText);
-              return ''; 
-            }
-            return newText.trim();
-          });
+          const lowerText = finalTranscript.toLocaleLowerCase('tr-TR');
+          
+          if (voicePromptStateRef.current === 'awaiting_random') {
+             if (lowerText.includes('rastgele')) {
+                setVoicePromptState('idle');
+                setIsBottomListening(false);
+                bottomRecognitionRef.current?.stop();
+                generateRandomImage();
+             } else {
+                setVoicePromptState('idle');
+                setUserPrompt(finalTranscript);
+             }
+             return;
+          }
+
+          if (lowerText.includes('görsel oluştur')) {
+             const cleanedText = lowerText.replace(/görsel oluştur/ig, '').trim();
+             const finalPrompt = userPromptRef.current + " " + cleanedText;
+             
+             if (!finalPrompt.trim() && activeTabRef.current === 'prompt') {
+                setIsBottomListening(false);
+                bottomRecognitionRef.current?.stop();
+                
+                const utterance = new SpeechSynthesisUtterance("Prompt girmek ister misiniz veya rastgele üretim yapalım mı?");
+                utterance.lang = 'tr-TR';
+                utterance.onend = () => {
+                   setVoicePromptState('awaiting_random');
+                   setIsBottomListening(true);
+                   try { bottomRecognitionRef.current?.start(); } catch(e){}
+                };
+                window.speechSynthesis.speak(utterance);
+             } else {
+                handleGenerateFromBottom(finalPrompt);
+             }
+          } else {
+             setBottomInput(prev => prev + (prev ? " " : "") + finalTranscript.trim());
+          }
         }
       };
 
@@ -2122,12 +2194,18 @@ export default function App() {
           <MotionDiv variants={revealItemRight} className="lg:col-span-5 flex flex-col space-y-6">
             <div className="relative h-[500px] rounded-3xl neu-flat overflow-hidden flex flex-col">
               {activeTab === 'prompt' ? (
-                <div className="flex-1 flex flex-col p-4">
+                <div className="flex-1 relative flex flex-col p-4">
+                  <div 
+                    className="absolute inset-0 p-4 text-sm whitespace-pre-wrap pointer-events-none break-words custom-scrollbar overflow-y-auto"
+                    style={{ color: 'transparent', fontFamily: 'inherit' }}
+                    dangerouslySetInnerHTML={{ __html: highlightText(userPrompt, Object.values(selectedSuggestions)) }}
+                  />
                   <textarea
                     value={userPrompt}
                     onChange={(e) => setUserPrompt(e.target.value)}
                     placeholder="Analiz yaparsanız burada gözükecek veya kendi promptunuzu da buraya yazabilirsiniz..."
-                    className="flex-1 w-full bg-transparent resize-none focus:outline-none text-sm p-4 text-[#2d3748] dark:text-gray-300 custom-scrollbar"
+                    className="absolute inset-0 w-full h-full bg-transparent resize-none focus:outline-none text-sm p-4 text-[#2d3748] dark:text-gray-300 custom-scrollbar"
+                    style={{ color: 'inherit', background: 'transparent' }}
                   />
                 </div>
               ) : (
@@ -2157,19 +2235,43 @@ export default function App() {
                   )}
 
                   {result && (
-                    <div ref={resultsContainerRef} className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
-                      <MotionDiv 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="p-6 font-mono text-[11px] leading-relaxed flex-1"
-                      >
-                        <pre className={cn("whitespace-pre-wrap", themeMode === 'liquid' ? "text-white" : "text-[#4a5568] dark:text-gray-300")}>
-                          {JSON.stringify(result, null, 2)}
-                        </pre>
-                      </MotionDiv>
+                    <div className="flex-1 relative flex flex-col p-6 font-mono text-[11px] leading-relaxed">
+                      <div 
+                        className="absolute inset-0 p-6 whitespace-pre-wrap pointer-events-none break-words custom-scrollbar overflow-y-auto"
+                        style={{ color: 'transparent', fontFamily: 'inherit' }}
+                        dangerouslySetInnerHTML={{ __html: highlightText(jsonText, Object.values(selectedSuggestions)) }}
+                      />
+                      <textarea
+                        value={jsonText}
+                        onChange={(e) => {
+                           setJsonText(e.target.value);
+                           try { setResult(JSON.parse(e.target.value)); } catch(e) {}
+                        }}
+                        className="absolute inset-0 w-full h-full bg-transparent resize-none focus:outline-none text-[#4a5568] dark:text-gray-300 custom-scrollbar p-6"
+                        style={{ color: 'inherit', background: 'transparent' }}
+                      />
                     </div>
                   )}
                 </>
+              )}
+
+              {/* Empty Prompt Warning Overlay */}
+              {showEmptyPromptWarning && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl">
+                  <div className="neu-base p-6 rounded-2xl max-w-sm text-center space-y-4 shadow-2xl">
+                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">
+                      Prompt girişi yapmalısınız veya rastgele üretim yapılmasını ister misiniz?
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <button onClick={() => setShowEmptyPromptWarning(false)} className="px-4 py-2 neu-flat rounded-xl text-xs font-bold text-[#718096] hover:text-[#2d3748] transition-colors">
+                        Prompt Gir
+                      </button>
+                      <button onClick={() => { setShowEmptyPromptWarning(false); generateRandomImage(); }} className="px-4 py-2 neu-flat rounded-xl text-xs font-bold text-blue-500 hover:text-blue-600 transition-colors">
+                        Rastgele Üret
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {/* Bottom Input Area */}
@@ -2194,14 +2296,36 @@ export default function App() {
                   </button>
                 </div>
                 <button
+                  onClick={() => {
+                    setUserPrompt("");
+                    setBottomInput("");
+                    setSelectedSuggestions({});
+                    if (initialResult) {
+                      setResult(initialResult);
+                      setJsonText(JSON.stringify(initialResult, null, 2));
+                    }
+                  }}
+                  className="px-3 py-2 neu-flat text-red-500 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center"
+                  title="Sıfırla"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <button
                   onClick={handleBottomSubmit}
                   className="px-3 py-2 neu-flat text-blue-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs"
                 >
                   Gönder
                 </button>
                 <button
-                  onClick={() => handleGenerateFromBottom(userPrompt + " " + bottomInput)}
-                  disabled={isGeneratingImage || (!userPrompt && !bottomInput)}
+                  onClick={() => {
+                    if (activeTab === 'prompt' && !userPrompt.trim() && !bottomInput.trim()) {
+                      setShowEmptyPromptWarning(true);
+                    } else {
+                      const promptToUse = activeTab === 'prompt' ? (userPrompt + " " + bottomInput) : jsonText;
+                      handleGenerateFromBottom(promptToUse);
+                    }
+                  }}
+                  disabled={isGeneratingImage}
                   className="px-3 py-2 neu-flat text-green-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center gap-1 disabled:opacity-50"
                 >
                   {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
