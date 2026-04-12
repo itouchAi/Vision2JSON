@@ -676,6 +676,9 @@ export default function App() {
   const [jsonText, setJsonText] = useState("");
   const [voicePromptState, setVoicePromptState] = useState<'idle' | 'awaiting_random'>('idle');
   const [showEmptyPromptWarning, setShowEmptyPromptWarning] = useState(false);
+  const [showGeneratedModal, setShowGeneratedModal] = useState(false);
+  const promptScrollRef = useRef<HTMLDivElement>(null);
+  const jsonScrollRef = useRef<HTMLDivElement>(null);
   
   const userPromptRef = useRef(userPrompt);
   useEffect(() => { userPromptRef.current = userPrompt; }, [userPrompt]);
@@ -697,14 +700,52 @@ export default function App() {
     handleGenerateFromBottom(randomPrompt);
   };
 
+  const getChangedValues = (current: any, initial: any): string[] => {
+    if (!current || !initial) return [];
+    let changes: string[] = [];
+    
+    const compare = (curr: any, init: any) => {
+      if (typeof curr === 'string' && curr !== init) {
+        changes.push(curr);
+      } else if (Array.isArray(curr)) {
+        curr.forEach((item, index) => {
+          if (init && Array.isArray(init)) {
+            compare(item, init[index]);
+          } else {
+            if (typeof item === 'string') changes.push(item);
+          }
+        });
+      } else if (typeof curr === 'object' && curr !== null) {
+        Object.keys(curr).forEach(key => {
+          if (init && typeof init === 'object') {
+            compare(curr[key], init[key]);
+          } else {
+            if (typeof curr[key] === 'string') changes.push(curr[key]);
+          }
+        });
+      }
+    };
+    
+    compare(current, initial);
+    return changes.filter(Boolean);
+  };
+
   const highlightText = (text: string, wordsToHighlight: (string | undefined)[]) => {
     if (!text) return "";
     let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    wordsToHighlight.filter(Boolean).forEach(word => {
-      if (!word) return;
+    const validWords = wordsToHighlight.filter(Boolean) as string[];
+    if (validWords.length === 0) return html;
+    
+    validWords.sort((a, b) => b.length - a.length);
+    
+    validWords.forEach(word => {
       const regex = new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-      html = html.replace(regex, `<mark class="bg-blue-500/30 text-transparent rounded px-1">$1</mark>`);
+      html = html.replace(regex, `<span class="rounded-sm" style="color: transparent; background-color: rgba(59, 130, 246, 0.4);">$1</span>`);
     });
+    
+    if (html.endsWith('\n')) {
+      html += '<br/>';
+    }
     return html;
   };
 
@@ -742,6 +783,7 @@ export default function App() {
       for (const part of imageResponse.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) {
           setGeneratedImageUrl(`data:image/png;base64,${part.inlineData.data}`);
+          setIsModalOpen(true);
           break;
         }
       }
@@ -1685,7 +1727,6 @@ export default function App() {
       const text = response.text;
       if (text) {
         setResult(JSON.parse(text));
-        setSelectedSuggestions({}); // Clear selections after revision
       }
     } catch (err: any) {
       console.error("Revision failed:", err);
@@ -2196,15 +2237,22 @@ export default function App() {
               {activeTab === 'prompt' ? (
                 <div className="flex-1 relative flex flex-col p-4">
                   <div 
-                    className="absolute inset-0 p-4 text-sm whitespace-pre-wrap pointer-events-none break-words custom-scrollbar overflow-y-auto"
-                    style={{ color: 'transparent', fontFamily: 'inherit' }}
+                    ref={promptScrollRef}
+                    className="absolute inset-0 p-4 text-sm leading-relaxed font-sans whitespace-pre-wrap pointer-events-none break-words overflow-y-auto custom-scrollbar"
+                    style={{ color: 'transparent' }}
                     dangerouslySetInnerHTML={{ __html: highlightText(userPrompt, Object.values(selectedSuggestions)) }}
                   />
                   <textarea
                     value={userPrompt}
                     onChange={(e) => setUserPrompt(e.target.value)}
+                    onScroll={(e) => {
+                      if (promptScrollRef.current) {
+                        promptScrollRef.current.scrollTop = e.currentTarget.scrollTop;
+                        promptScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+                      }
+                    }}
                     placeholder="Analiz yaparsanız burada gözükecek veya kendi promptunuzu da buraya yazabilirsiniz..."
-                    className="absolute inset-0 w-full h-full bg-transparent resize-none focus:outline-none text-sm p-4 text-[#2d3748] dark:text-gray-300 custom-scrollbar"
+                    className="absolute inset-0 w-full h-full bg-transparent resize-none focus:outline-none text-sm leading-relaxed font-sans p-4 text-[#2d3748] dark:text-gray-300 custom-scrollbar"
                     style={{ color: 'inherit', background: 'transparent' }}
                   />
                 </div>
@@ -2237,15 +2285,22 @@ export default function App() {
                   {result && (
                     <div className="flex-1 relative flex flex-col p-6 font-mono text-[11px] leading-relaxed">
                       <div 
-                        className="absolute inset-0 p-6 whitespace-pre-wrap pointer-events-none break-words custom-scrollbar overflow-y-auto"
-                        style={{ color: 'transparent', fontFamily: 'inherit' }}
-                        dangerouslySetInnerHTML={{ __html: highlightText(jsonText, Object.values(selectedSuggestions)) }}
+                        ref={jsonScrollRef}
+                        className="absolute inset-0 p-6 whitespace-pre-wrap pointer-events-none break-words overflow-y-auto custom-scrollbar"
+                        style={{ color: 'transparent' }}
+                        dangerouslySetInnerHTML={{ __html: highlightText(jsonText, getChangedValues(result, initialResult)) }}
                       />
                       <textarea
                         value={jsonText}
                         onChange={(e) => {
                            setJsonText(e.target.value);
                            try { setResult(JSON.parse(e.target.value)); } catch(e) {}
+                        }}
+                        onScroll={(e) => {
+                          if (jsonScrollRef.current) {
+                            jsonScrollRef.current.scrollTop = e.currentTarget.scrollTop;
+                            jsonScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+                          }
                         }}
                         className="absolute inset-0 w-full h-full bg-transparent resize-none focus:outline-none text-[#4a5568] dark:text-gray-300 custom-scrollbar p-6"
                         style={{ color: 'inherit', background: 'transparent' }}
@@ -2589,7 +2644,7 @@ export default function App() {
 
       <AnimatePresenceComponent>
         {generatedImageUrl && isModalOpen && (
-          <GeneratedImageModal url={generatedImageUrl} onClose={() => setIsModalOpen(false)} t={t} />
+          <GeneratedImageModal url={generatedImageUrl} onClose={() => setIsModalOpen(false)} t={t} referenceImage={image} />
         )}
       </AnimatePresenceComponent>
 
@@ -3061,7 +3116,7 @@ function StudioControl({ label, value, options, onChange }: { label: string, val
   );
 }
 
-function GeneratedImageModal({ url, onClose, t }: { url: string, onClose: () => void, t: any }) {
+function GeneratedImageModal({ url, onClose, t, referenceImage }: { url: string, onClose: () => void, t: any, referenceImage?: string | null }) {
   return (
     <MotionDiv
       initial={{ opacity: 0 }}
@@ -3076,10 +3131,57 @@ function GeneratedImageModal({ url, onClose, t }: { url: string, onClose: () => 
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        className="relative flex flex-col neu-base rounded-2xl sm:rounded-3xl overflow-hidden shadow-[20px_20px_60px_#c8cbd2,-20px_-20px_60px_#ffffff] dark:shadow-[10px_10px_30px_#121418,-10px_-10px_30px_#2a2e39] cursor-default p-2 sm:p-4"
-        style={{ width: 'min(90vw, 90vh)', height: 'min(90vw, 90vh)' }}
+        className={`relative flex flex-col neu-base rounded-2xl sm:rounded-3xl overflow-hidden shadow-[20px_20px_60px_#c8cbd2,-20px_-20px_60px_#ffffff] dark:shadow-[10px_10px_30px_#121418,-10px_-10px_30px_#2a2e39] cursor-default ${referenceImage ? 'p-4 sm:p-8 w-full max-w-6xl h-[90vh]' : 'p-2 sm:p-4'}`}
+        style={!referenceImage ? { width: 'min(90vw, 90vh)', height: 'min(90vw, 90vh)' } : {}}
       >
-        <img src={url} alt="Generated" className="w-full h-full object-contain rounded-xl sm:rounded-2xl" referrerPolicy="no-referrer" />
+        {referenceImage ? (
+          <>
+            <h2 className="text-2xl font-bold text-center mb-6 text-[#2d3748] dark:text-white">Üretilen Görsel</h2>
+            <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
+              <div className="flex-1 flex flex-col gap-3">
+                <h3 className="font-bold text-center text-[#718096] dark:text-gray-500 uppercase tracking-widest text-sm">Referans</h3>
+                <div className="flex-1 neu-pressed rounded-2xl overflow-hidden p-2 relative">
+                  <img src={referenceImage} alt="Reference" className="w-full h-full object-contain rounded-xl" />
+                </div>
+              </div>
+              <div className="flex-1 flex flex-col gap-3">
+                <h3 className="font-bold text-center text-blue-500 uppercase tracking-widest text-sm">Üretilen Görsel</h3>
+                <div className="flex-1 neu-flat rounded-2xl overflow-hidden p-2 relative">
+                  <img src={url} alt="Generated" className="w-full h-full object-contain rounded-xl" referrerPolicy="no-referrer" />
+                </div>
+              </div>
+            </div>
+            {/* Download Button */}
+            <div className="mt-6 flex justify-end">
+              <a 
+                href={url} 
+                download="generated.png" 
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-lg hover:shadow-blue-500/25"
+              >
+                <Download className="w-4 h-4" />
+                İndir
+              </a>
+            </div>
+          </>
+        ) : (
+          <>
+            <img src={url} alt="Generated" className="w-full h-full object-contain rounded-xl sm:rounded-2xl" referrerPolicy="no-referrer" />
+            <div className="absolute bottom-4 left-4 right-4 p-4 sm:p-6 glass-panel rounded-xl sm:rounded-2xl">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <p className="text-[#2d3748] dark:text-white font-bold text-lg sm:text-xl tracking-tight">{t.generatedImageTitle}</p>
+                  <p className="text-[#718096] dark:text-[#94a3b8] text-xs sm:text-sm max-w-md font-medium hidden sm:block">{t.generatedImageDesc}</p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 sm:px-6 sm:py-3 neu-flat text-[#4a5568] dark:text-[#94a3b8] hover:text-red-500 dark:hover:text-red-400 active:neu-pressed rounded-xl text-xs sm:text-sm font-bold transition-all"
+                >
+                  {t.close}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
         
         {/* Top Right Close Button */}
         <button 
@@ -3089,22 +3191,6 @@ function GeneratedImageModal({ url, onClose, t }: { url: string, onClose: () => 
         >
           <X className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
-
-        {/* Bottom Info Bar */}
-        <div className="absolute bottom-4 left-4 right-4 p-4 sm:p-6 glass-panel rounded-xl sm:rounded-2xl">
-          <div className="flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <p className="text-[#2d3748] dark:text-white font-bold text-lg sm:text-xl tracking-tight">{t.generatedImageTitle}</p>
-              <p className="text-[#718096] dark:text-[#94a3b8] text-xs sm:text-sm max-w-md font-medium hidden sm:block">{t.generatedImageDesc}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 sm:px-6 sm:py-3 neu-flat text-[#4a5568] dark:text-[#94a3b8] hover:text-red-500 dark:hover:text-red-400 active:neu-pressed rounded-xl text-xs sm:text-sm font-bold transition-all"
-            >
-              {t.close}
-            </button>
-          </div>
-        </div>
       </MotionDiv>
     </MotionDiv>
   );
