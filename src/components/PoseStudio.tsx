@@ -278,7 +278,7 @@ const Scene = ({ shotSize, hAngle, vAngle, lightSettings, gender }: any) => {
 
 // --- Main Component ---
 
-export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpload, onTranslatePrompt, onEnhancePrompt }: any) => {
+export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpload, onTranslatePrompt, onEnhancePrompt, onGetAITip }: any) => {
   const [step, setStep] = useState<'gender' | 'pose' | 'options' | 'ai_editor'>('gender');
   const [gender, setGender] = useState<'male' | 'female'>('female');
   
@@ -302,6 +302,10 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
   const [aiInput, setAiInput] = useState('');
   const [isProcessingAI, setIsProcessingAI] = useState(false);
 
+  // AI Tip State
+  const [aiTip, setAiTip] = useState<string | null>(null);
+  const [isGeneratingTip, setIsGeneratingTip] = useState(false);
+
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   // Reset state when opened
@@ -321,8 +325,28 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
       setTurkishSummary('');
       setAiInput('');
       setIsProcessingAI(false);
+      setAiTip(null);
+      setIsGeneratingTip(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (step !== 'pose' || !onGetAITip) return;
+    
+    setIsGeneratingTip(true);
+    const timeoutId = setTimeout(async () => {
+      const tip = await onGetAITip({
+        shotSize: SHOT_SIZES[shotSize].label,
+        hAngle: HORIZONTAL_ANGLES[hAngle].label,
+        vAngle: VERTICAL_ANGLES[vAngle].label,
+        lightStyle: LIGHTING_STYLES[lightStyle].label
+      });
+      setAiTip(tip);
+      setIsGeneratingTip(false);
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [shotSize, hAngle, vAngle, lightStyle, step, onGetAITip]);
 
   // Update useReference if image is uploaded externally while modal is open
   useEffect(() => {
@@ -388,16 +412,14 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
       subject: {
         gender: gender,
       },
-      camera: {
-        shotSize: SHOT_SIZES[shotSize].prompt,
-        horizontalAngle: HORIZONTAL_ANGLES[hAngle].prompt,
-        verticalAngle: VERTICAL_ANGLES[vAngle].prompt,
-      },
+      camera: `${SHOT_SIZES[shotSize].prompt}, ${HORIZONTAL_ANGLES[hAngle].prompt}, ${VERTICAL_ANGLES[vAngle].prompt}`,
       lighting: {
         style: LIGHTING_STYLES[lightStyle].prompt,
         direction: getLightDirectionText(),
       },
-      semantic_translation: semanticText
+      generation_parameters: {
+        prompts: [semanticText]
+      }
     };
     
     const jsonStr = JSON.stringify(promptObj, null, 2);
@@ -521,7 +543,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                 className="absolute inset-0 flex flex-col lg:flex-row overflow-hidden w-full h-full"
               >
                 {/* 3D Canvas Area */}
-                <div className="flex-1 relative bg-[#1a1d23] min-w-0 min-h-0" ref={canvasContainerRef}>
+                <div className="h-[50vh] lg:h-auto lg:flex-1 relative bg-[#1a1d23] min-w-0 min-h-0 flex-shrink-0 lg:flex-shrink" ref={canvasContainerRef}>
                   <Canvas shadows gl={{ preserveDrawingBuffer: true }}>
                     <Scene 
                       shotSize={shotSize} 
@@ -539,7 +561,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                 </div>
 
                 {/* Controls Sidebar */}
-                <div className="w-full lg:w-80 flex-shrink-0 border-l border-white/10 bg-black/5 p-6 overflow-y-auto flex flex-col gap-6 min-w-0 min-h-0">
+                <div className="flex-1 lg:flex-none w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-white/10 bg-black/5 p-6 overflow-y-auto flex flex-col gap-6 min-w-0 min-h-0">
                   
                   {/* Semantic Camera Controls */}
                   <div className="space-y-4">
@@ -598,6 +620,24 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                       <p className="text-xs text-gray-600 dark:text-gray-300 italic break-words whitespace-pre-wrap">
                         {generateSemanticDescription()}
                       </p>
+                    </div>
+
+                    {/* AI Co-pilot Tip */}
+                    <div className="mt-4 p-3 neu-flat rounded-xl bg-purple-500/10 border border-purple-500/30 relative overflow-hidden">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Wand2 className="w-4 h-4 text-purple-500" />
+                        <span className="text-xs font-bold text-purple-500 uppercase tracking-wider">Yapay Zeka Asistanı</span>
+                      </div>
+                      {isGeneratingTip ? (
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <div className="w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                          Yorumluyor...
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-600 dark:text-gray-300 italic">
+                          {aiTip || "Seçimlerinizi analiz ediyorum..."}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -774,7 +814,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                       Yapay zeka sahneyi analiz ediyor...
                     </div>
                   ) : (
-                    <p className="text-sm text-[#2d3748] dark:text-gray-300 italic">{turkishSummary}</p>
+                    <p className="text-sm text-[#2d3748] dark:text-gray-300 italic break-words whitespace-pre-wrap">{turkishSummary}</p>
                   )}
                 </div>
 

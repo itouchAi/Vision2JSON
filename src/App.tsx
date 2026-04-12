@@ -25,7 +25,11 @@ import {
   ArrowUp,
   RotateCcw,
   Palette,
-  Download
+  Download,
+  Mic,
+  MicOff,
+  Box,
+  Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 const MotionDiv = motion.div as any;
@@ -310,6 +314,26 @@ export const enhancePromptWithAI = async (jsonPrompt: string, userInput: string)
   } catch (e) {
     console.error("Enhancement error:", e);
     return jsonPrompt;
+  }
+};
+
+export const getAITip = async (settings: any) => {
+  try {
+    const response = await genAI.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [{ role: "user", parts: [{ text: `Bir fotoğraf stüdyosu uygulamasındayız. Kullanıcı şu ayarları seçti:
+Çekim Ölçeği: ${settings.shotSize}
+Yatay Açı: ${settings.hAngle}
+Dikey Açı: ${settings.vAngle}
+Işık Stili: ${settings.lightStyle}
+
+Lütfen bu kombinasyon hakkında profesyonel bir fotoğrafçı gibi kısa, tek cümlelik bir ipucu veya yorum ver. Örneğin: "Alt açı ve dramatik ışık karakteri çok güçlü gösterecektir." veya "Öğlen ışığı ile yakın plan çekimlerde yüzdeki gölgelere dikkat etmelisin."
+Sadece tek bir cümle ver, ek açıklama yapma.` }] }]
+    });
+    return response.text || "Güzel bir kompozisyon!";
+  } catch (e) {
+    console.error("Tip generation error:", e);
+    return null;
   }
 };
 
@@ -625,6 +649,7 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [initialResult, setInitialResult] = useState<AnalysisResult | null>(null);
+  const [activeTab, setActiveTab] = useState<'prompt' | 'json'>('prompt');
   const [selectedSuggestions, setSelectedSuggestions] = useState<Record<string, string>>({});
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -638,6 +663,228 @@ export default function App() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const isAutoListeningRef = useRef(false);
+  const isChatLoadingRef = useRef(false);
+  const askAIRef = useRef<((overrideText?: string) => Promise<void>) | null>(null);
+
+  const [userPrompt, setUserPrompt] = useState('');
+  const [bottomInput, setBottomInput] = useState('');
+  const [isBottomListening, setIsBottomListening] = useState(false);
+  const bottomRecognitionRef = useRef<any>(null);
+  
+  const userPromptRef = useRef(userPrompt);
+  useEffect(() => { userPromptRef.current = userPrompt; }, [userPrompt]);
+
+  const handleGenerateFromBottom = async (promptText: string) => {
+    if (!promptText.trim()) return;
+    setIsGeneratingImage(true);
+    setError(null);
+    setGeneratedImageUrl(null);
+
+    try {
+      let parts: any[] = [{ text: promptText }];
+      if (image) {
+        const base64Data = image.split(',')[1];
+        parts = [
+          { inlineData: { data: base64Data, mimeType: "image/jpeg" } },
+          { text: `[CRITICAL INSTRUCTION: Use the provided image as a STRICT character reference. Preserve the exact facial features and identity.]\n\n${promptText}` }
+        ];
+      }
+
+      const imageResponse = await genAI.models.generateContent({
+        model: "gemini-2.5-flash-image",
+        contents: [{ parts }],
+        config: { imageConfig: { aspectRatio: "1:1" } }
+      });
+
+      for (const part of imageResponse.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          setGeneratedImageUrl(`data:image/png;base64,${part.inlineData.data}`);
+          break;
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError("Görsel üretilirken bir hata oluştu.");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  const reviseAnalysisWithText = async (instruction: string) => {
+    if (!result) return;
+    setIsRevising(true);
+    setError(null);
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [
+          {
+            parts: [
+              { text: `Update the following image analysis JSON based on this user instruction: "${instruction}". Maintain the same schema and extreme precision.\n\nCurrent JSON:\n${JSON.stringify(result)}` }
+            ]
+          }
+        ],
+        config: { responseMimeType: "application/json", responseSchema: ANALYSIS_SCHEMA }
+      });
+      if (response.text) setResult(JSON.parse(response.text));
+    } catch (err) {
+      console.error(err);
+      setError("Revizyon sırasında bir hata oluştu.");
+    } finally {
+      setIsRevising(false);
+    }
+  };
+
+  const handleBottomSubmit = () => {
+    if (!bottomInput.trim()) return;
+    if (activeTab === 'prompt') {
+      setUserPrompt(prev => prev + (prev ? " " : "") + bottomInput);
+      setBottomInput("");
+    } else {
+      if (result) {
+        reviseAnalysisWithText(bottomInput);
+        setBottomInput("");
+      }
+    }
+  };
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = language === 'TR' ? 'tr-TR' : 'en-US';
+
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          setBottomInput(prev => {
+            const newText = prev + " " + finalTranscript.trim();
+            if (newText.toLowerCase().includes('görsel oluştur')) {
+              const cleanedText = newText.replace(/görsel oluştur/ig, '').trim();
+              handleGenerateFromBottom(userPromptRef.current + " " + cleanedText);
+              return ''; 
+            }
+            return newText.trim();
+          });
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        if (event.error !== 'no-speech') {
+          setIsBottomListening(false);
+        }
+      };
+
+      recognition.onend = () => {
+        if (isBottomListening) {
+          try { recognition.start(); } catch(e) {}
+        }
+      };
+
+      bottomRecognitionRef.current = recognition;
+    }
+  }, [language, isBottomListening]);
+
+  const toggleBottomListening = () => {
+    if (isBottomListening) {
+      setIsBottomListening(false);
+      bottomRecognitionRef.current?.stop();
+    } else {
+      setIsBottomListening(true);
+      try { bottomRecognitionRef.current?.start(); } catch(e) {}
+    }
+  };
+
+  useEffect(() => {
+    isChatLoadingRef.current = isChatLoading;
+  }, [isChatLoading]);
+
+  useEffect(() => {
+    // Initialize SpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = language === 'TR' ? 'tr-TR' : 'en-US';
+
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          setChatInput(finalTranscript);
+          if (isAutoListeningRef.current && askAIRef.current) {
+            askAIRef.current(finalTranscript);
+          }
+        } else {
+          setChatInput(interimTranscript);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error", event.error);
+        if (event.error !== 'no-speech') {
+          setIsListening(false);
+          isAutoListeningRef.current = false;
+          if (event.error === 'not-allowed') {
+            setChatInput(language === 'TR' ? "Mikrofon izni reddedildi. Lütfen tarayıcı ayarlarından izin verin." : "Microphone permission denied. Please allow it in browser settings.");
+            setTimeout(() => setChatInput(''), 3000);
+          }
+        }
+      };
+
+      recognition.onend = () => {
+        if (isAutoListeningRef.current && !isChatLoadingRef.current) {
+          try {
+            recognition.start();
+          } catch (e) {}
+        } else if (!isAutoListeningRef.current) {
+          setIsListening(false);
+        }
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, [language]);
+
+  const toggleListening = () => {
+    if (isListening) {
+      isAutoListeningRef.current = false;
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      setChatInput('');
+      isAutoListeningRef.current = true;
+      try {
+        recognitionRef.current?.start();
+      } catch (e) {}
+      setIsListening(true);
+    }
+  };
   const [chatInput, setChatInput] = useState("");
 
   useEffect(() => {
@@ -678,13 +925,20 @@ export default function App() {
     setIsHistoryOpen(false);
   };
 
-  const askAI = async () => {
-    if (!chatInput.trim() || !image || !result) return;
+  const askAI = async (overrideText?: string) => {
+    const textToUse = overrideText || chatInput;
+    if (!textToUse.trim() || !image || !result) return;
 
-    const userMessage = chatInput.trim();
+    const userMessage = textToUse.trim();
     setChatMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setChatInput("");
     setIsChatLoading(true);
+    
+    if (isAutoListeningRef.current) {
+      try {
+        recognitionRef.current?.stop();
+      } catch (e) {}
+    }
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -712,8 +966,19 @@ export default function App() {
       setChatMessages(prev => [...prev, { role: 'ai', text: "Bir hata oluştu, lütfen tekrar deneyin." }]);
     } finally {
       setIsChatLoading(false);
+      if (isAutoListeningRef.current) {
+        setTimeout(() => {
+          try {
+            recognitionRef.current?.start();
+          } catch (e) {}
+        }, 500);
+      }
     }
   };
+
+  useEffect(() => {
+    askAIRef.current = askAI;
+  }, [askAI]);
 
   useEffect(() => {
     if (isDarkMode || themeMode === 'liquid') {
@@ -1469,8 +1734,15 @@ export default function App() {
               onClick={() => setIsPoseStudioOpen(true)}
               className="flex items-center gap-2 px-4 h-10 neu-flat rounded-xl text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
             >
-              <User className="w-4 h-4" />
+              <Box className="w-4 h-4" />
               3D Pose Studio
+            </button>
+            <button
+              onClick={() => setIsStudioOpen(true)}
+              className="flex items-center gap-2 px-4 h-10 neu-flat rounded-xl text-sm font-bold text-green-500 hover:text-green-600 transition-colors"
+            >
+              <User className="w-4 h-4" />
+              Influencer Studio
             </button>
             <a 
               href="https://github.com" 
@@ -1672,36 +1944,33 @@ export default function App() {
                 <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
                   <Code className="w-5 h-5" />
                 </div>
-                <h3 className={cn("font-bold text-xl", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.jsonOutput}</h3>
+                <h3 className={cn("font-bold text-xl", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>
+                  {activeTab === 'prompt' ? "Prompt Girişi" : "JSON Çıktısı"}
+                </h3>
               </div>
-              <div className="grid grid-cols-4 gap-3 w-full">
+              <div className="grid grid-cols-3 gap-3 w-full">
                 <button
-                  onClick={() => setIsStudioOpen(true)}
-                  disabled={!result}
-                  className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full disabled:opacity-40 disabled:cursor-not-allowed"
+                  onClick={() => setActiveTab('prompt')}
+                  className={cn("h-10 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full", activeTab === 'prompt' ? "neu-pressed text-blue-600" : "neu-flat text-[#4a5568] hover:text-blue-500")}
                 >
-                  <User className="w-4 h-4" />
-                  <span className="hidden xl:inline">{t.studioTitle}</span>
+                  <Edit3 className="w-4 h-4" />
+                  <span className="hidden xl:inline">Prompt Girişi</span>
                 </button>
                 <button
-                  onClick={generateImage}
-                  disabled={!result || isGeneratingImage || isAnalyzing || isUpgrading}
-                  className="h-10 neu-flat text-green-600 hover:text-green-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold disabled:opacity-40 disabled:cursor-not-allowed w-full"
+                  onClick={() => {
+                    setActiveTab('json');
+                    if (!result && image && !isAnalyzing) {
+                      analyzeImage();
+                    }
+                  }}
+                  className={cn("h-10 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full", activeTab === 'json' ? "neu-pressed text-blue-600" : "neu-flat text-[#4a5568] hover:text-blue-500")}
                 >
-                  {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                  <span className="hidden xl:inline">{isGeneratingImage ? t.generating : t.generate}</span>
-                </button>
-                <button
-                  onClick={upgradeToHyperRealistic}
-                  disabled={!result || isUpgrading || isAnalyzing}
-                  className="h-10 neu-flat text-blue-600 hover:text-blue-700 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold disabled:opacity-40 disabled:cursor-not-allowed w-full"
-                >
-                  {isUpgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  <span className="hidden xl:inline">{isUpgrading ? t.upgrading : t.upgrade}</span>
+                  <Code className="w-4 h-4" />
+                  <span className="hidden xl:inline">JSON Kodu</span>
                 </button>
                 <button
                   onClick={copyToClipboard}
-                  disabled={!result}
+                  disabled={activeTab === 'prompt' ? !userPrompt : !result}
                   className="h-10 neu-flat text-[#4a5568] hover:text-blue-500 active:neu-pressed rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-bold w-full disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
@@ -1758,23 +2027,24 @@ export default function App() {
                       referrerPolicy="no-referrer"
                     />
                     <div className="absolute bottom-6 left-6 right-6 flex gap-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                      <button
-                        onClick={analyzeImage}
-                        disabled={isAnalyzing}
-                        className="flex-1 h-12 glass-panel bg-white/20 dark:bg-white/10 text-blue-600 dark:text-blue-400 font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/40 dark:border-white/20 shadow-2xl backdrop-blur-2xl"
-                      >
-                        {isAnalyzing ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            {t.analyzing}
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="w-5 h-5" />
-                            {t.analyze}
-                          </>
-                        )}
-                      </button>
+                      <label className="flex-1 h-12 glass-panel bg-white/20 dark:bg-white/10 text-blue-600 dark:text-blue-400 font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all border border-white/40 dark:border-white/20 shadow-2xl backdrop-blur-2xl cursor-pointer">
+                        <Upload className="w-5 h-5" />
+                        Görseli Değiştir
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setImage(reader.result as string);
+                              setResult(null);
+                              setSelectedSuggestions({});
+                              setError(null);
+                              setUserPrompt('');
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }} />
+                      </label>
                       <button
                         onClick={reset}
                         disabled={isAnalyzing}
@@ -1851,48 +2121,98 @@ export default function App() {
           {/* Bento Item 3: JSON Output (Right) */}
           <MotionDiv variants={revealItemRight} className="lg:col-span-5 flex flex-col space-y-6">
             <div className="relative h-[500px] rounded-3xl neu-flat overflow-hidden flex flex-col">
-              {!result && !isAnalyzing && (
-                <div className="flex-1 flex flex-col items-center justify-center text-[#718096] dark:text-gray-400 p-12 text-center">
-                  <div className="w-12 h-12 rounded-full neu-pressed flex items-center justify-center mb-4 text-orange-500">
-                    <ImageIcon className="w-6 h-6" />
-                  </div>
-                  <p className="text-sm font-medium">{t.resultsPlaceholder}</p>
+              {activeTab === 'prompt' ? (
+                <div className="flex-1 flex flex-col p-4">
+                  <textarea
+                    value={userPrompt}
+                    onChange={(e) => setUserPrompt(e.target.value)}
+                    placeholder="Analiz yaparsanız burada gözükecek veya kendi promptunuzu da buraya yazabilirsiniz..."
+                    className="flex-1 w-full bg-transparent resize-none focus:outline-none text-sm p-4 text-[#2d3748] dark:text-gray-300 custom-scrollbar"
+                  />
                 </div>
-              )}
-
-              {isAnalyzing && (
-                <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-6">
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full border-4 border-[#e6e9f0] dark:border-gray-800 border-t-blue-500 animate-spin shadow-lg" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full bg-blue-500/20 animate-pulse" />
+              ) : (
+                <>
+                  {!result && !isAnalyzing && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-[#718096] dark:text-gray-400 p-12 text-center">
+                      <div className="w-12 h-12 rounded-full neu-pressed flex items-center justify-center mb-4 text-orange-500">
+                        <ImageIcon className="w-6 h-6" />
+                      </div>
+                      <p className="text-sm font-medium">{t.resultsPlaceholder}</p>
                     </div>
-                  </div>
-                  <div className="text-center space-y-2">
-                    <p className="text-sm font-bold text-[#2d3748] dark:text-white">{t.processing}</p>
-                    <p className="text-xs text-[#718096] dark:text-gray-400">{t.aiDetails}</p>
-                  </div>
-                </div>
+                  )}
+
+                  {isAnalyzing && (
+                    <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-6">
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-full border-4 border-[#e6e9f0] dark:border-gray-800 border-t-blue-500 animate-spin shadow-lg" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-blue-500/20 animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="text-center space-y-2">
+                        <p className="text-sm font-bold text-[#2d3748] dark:text-white">{t.processing}</p>
+                        <p className="text-xs text-[#718096] dark:text-gray-400">{t.aiDetails}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {result && (
+                    <div ref={resultsContainerRef} className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+                      <MotionDiv 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="p-6 font-mono text-[11px] leading-relaxed flex-1"
+                      >
+                        <pre className={cn("whitespace-pre-wrap", themeMode === 'liquid' ? "text-white" : "text-[#4a5568] dark:text-gray-300")}>
+                          {JSON.stringify(result, null, 2)}
+                        </pre>
+                      </MotionDiv>
+                    </div>
+                  )}
+                </>
               )}
 
-              {result && (
-                <div ref={resultsContainerRef} className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
-                  <MotionDiv 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="p-6 font-mono text-[11px] leading-relaxed flex-1"
+              {/* Bottom Input Area */}
+              <div className="p-4 border-t border-[#c8cbd2]/20 dark:border-gray-800 flex gap-2 flex-shrink-0 bg-white/10">
+                <div className="flex-1 relative flex items-center">
+                  <input
+                    type="text"
+                    value={bottomInput}
+                    onChange={(e) => setBottomInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleBottomSubmit()}
+                    placeholder="Buraya yazın veya konuşun..."
+                    className="w-full bg-transparent neu-pressed rounded-xl pl-4 pr-10 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
+                  />
+                  <button
+                    onClick={toggleBottomListening}
+                    className={cn(
+                      "absolute right-2 p-1.5 rounded-full transition-all",
+                      isBottomListening ? "bg-red-500 text-white animate-pulse" : "text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
+                    )}
                   >
-                    <pre className={cn("whitespace-pre-wrap", themeMode === 'liquid' ? "text-white" : "text-[#4a5568] dark:text-gray-300")}>
-                      {JSON.stringify(result, null, 2)}
-                    </pre>
-                  </MotionDiv>
+                    {isBottomListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </button>
                 </div>
-              )}
+                <button
+                  onClick={handleBottomSubmit}
+                  className="px-3 py-2 neu-flat text-blue-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs"
+                >
+                  Gönder
+                </button>
+                <button
+                  onClick={() => handleGenerateFromBottom(userPrompt + " " + bottomInput)}
+                  disabled={isGeneratingImage || (!userPrompt && !bottomInput)}
+                  className="px-3 py-2 neu-flat text-green-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center gap-1 disabled:opacity-50"
+                >
+                  {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                  Oluştur
+                </button>
+              </div>
             </div>
           </MotionDiv>
 
           {/* Bento Item 4: Suggestions & AI Chat (Side-by-Side) */}
-          {result && (
+          {image && (
             <MotionDiv variants={revealItem} className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Suggestions */}
               <div className="neu-flat rounded-3xl overflow-hidden flex flex-col h-[450px]">
@@ -1905,7 +2225,11 @@ export default function App() {
                 
                 <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white/40 dark:bg-black/20">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {Object.entries(result.suggestions).map(([key, options]) => (
+                    {Object.entries(result ? result.suggestions : {
+                      lighting: ["Cinematic lighting", "Neon lights", "Golden hour", "Studio lighting"],
+                      cameraAngle: ["Close up", "Wide angle", "Eye level", "Low angle"],
+                      style: ["Hyper-realistic", "Cyberpunk", "Vintage film", "Anime style"]
+                    }).map(([key, options]) => (
                       <div key={key} className="space-y-3">
                         <label className={cn("text-[10px] font-bold uppercase tracking-widest ml-1", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>
                           {currentSuggestionLabels[key as keyof typeof currentSuggestionLabels] || key}
@@ -1914,10 +2238,16 @@ export default function App() {
                           {options.map((option) => (
                             <button
                               key={option}
-                              onClick={() => setSelectedSuggestions(prev => ({
-                                ...prev,
-                                [key]: prev[key] === option ? undefined : option
-                              }))}
+                              onClick={() => {
+                                if (activeTab === 'prompt') {
+                                  setUserPrompt(prev => prev + (prev ? ", " : "") + option);
+                                } else {
+                                  setSelectedSuggestions(prev => ({
+                                    ...prev,
+                                    [key]: prev[key] === option ? undefined : option
+                                  }));
+                                }
+                              }}
                               className={cn(
                                 "px-3 py-2 rounded-xl text-[11px] font-bold transition-all",
                                 selectedSuggestions[key] === option
@@ -2036,14 +2366,26 @@ export default function App() {
                 </div>
                 
                 <div className="p-4 border-t border-[#c8cbd2]/20 dark:border-gray-800 flex gap-3 flex-shrink-0">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && askAI()}
-                    placeholder={t.chatPlaceholder}
-                    className="flex-1 bg-transparent neu-pressed rounded-2xl px-6 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
-                  />
+                  <div className="flex-1 relative flex items-center">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && askAI()}
+                      placeholder={isListening ? (language === 'TR' ? "Dinleniyor..." : "Listening...") : t.chatPlaceholder}
+                      className="w-full bg-transparent neu-pressed rounded-2xl pl-6 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
+                    />
+                    <button
+                      onClick={toggleListening}
+                      className={cn(
+                        "absolute right-3 p-1.5 rounded-full transition-all",
+                        isListening ? "bg-red-500 text-white animate-pulse" : "text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
+                      )}
+                      title={language === 'TR' ? "Sesli Asistan" : "Voice Assistant"}
+                    >
+                      {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <button
                     onClick={askAI}
                     disabled={isChatLoading || !chatInput.trim()}
@@ -2153,6 +2495,7 @@ export default function App() {
         onGenerate={generateFromPoseStudio}
         onTranslatePrompt={translatePromptToTurkish}
         onEnhancePrompt={enhancePromptWithAI}
+        onGetAITip={getAITip}
       />
 
       {/* Influencer Studio Modal */}
