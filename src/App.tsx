@@ -2672,7 +2672,7 @@ export default function App() {
                   className="relative group rounded-3xl neu-flat overflow-hidden p-4"
                 >
                   <div className="flex flex-col md:flex-row gap-6">
-                    <div className="md:w-1/2 aspect-square rounded-2xl overflow-hidden relative">
+                    <div className="md:w-1/2 aspect-square rounded-2xl overflow-hidden relative group/img">
                       <img 
                         src={generatedImageUrl} 
                         alt="Generated Preview" 
@@ -2682,6 +2682,14 @@ export default function App() {
                       <div className="absolute top-4 left-4 px-4 py-2 glass-panel rounded-full text-[10px] font-bold text-[#2d3748] dark:text-white uppercase tracking-wider shadow-sm">
                         {t.generatedImageBadge}
                       </div>
+                      <a 
+                        href={generatedImageUrl} 
+                        download="generated.png" 
+                        className="absolute bottom-4 right-4 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity shadow-lg hover:bg-blue-700"
+                        title="İndir"
+                      >
+                        <Download className="w-4 h-4" />
+                      </a>
                     </div>
                     <div className="md:w-1/2 flex flex-col justify-center space-y-6 p-4">
                       <div className="space-y-2">
@@ -3309,12 +3317,23 @@ function GeneratedImageModal({ url, onClose, t, referenceImage }: { url: string,
                   <p className="text-[#2d3748] dark:text-white font-bold text-lg sm:text-xl tracking-tight">{t.generatedImageTitle}</p>
                   <p className="text-[#718096] dark:text-[#94a3b8] text-xs sm:text-sm max-w-md font-medium hidden sm:block">{t.generatedImageDesc}</p>
                 </div>
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 sm:px-6 sm:py-3 neu-flat text-[#4a5568] dark:text-[#94a3b8] hover:text-red-500 dark:hover:text-red-400 active:neu-pressed rounded-xl text-xs sm:text-sm font-bold transition-all"
-                >
-                  {t.close}
-                </button>
+                <div className="flex items-center gap-3">
+                  <a 
+                    href={url} 
+                    download="generated.png" 
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-lg hover:shadow-blue-500/25 text-xs sm:text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    İndir
+                  </a>
+                  <button
+                    onClick={onClose}
+                    className="px-4 py-2 sm:px-6 sm:py-3 neu-flat text-[#4a5568] dark:text-[#94a3b8] hover:text-red-500 dark:hover:text-red-400 active:neu-pressed rounded-xl text-xs sm:text-sm font-bold transition-all"
+                  >
+                    {t.close}
+                  </button>
+                </div>
               </div>
             </div>
           </>
