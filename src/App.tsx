@@ -1076,8 +1076,26 @@ export default function App() {
       date: new Date().toLocaleString()
     };
     const updatedHistory = [newItem, ...history].slice(0, 10);
-    setHistory(updatedHistory);
-    localStorage.setItem('analysis_history', JSON.stringify(updatedHistory));
+    
+    let currentHistoryToSave = [...updatedHistory];
+    let saved = false;
+    
+    while (!saved && currentHistoryToSave.length > 0) {
+      try {
+        localStorage.setItem('analysis_history', JSON.stringify(currentHistoryToSave));
+        setHistory(currentHistoryToSave);
+        saved = true;
+      } catch (e: any) {
+        if (e.name === 'QuotaExceededError' || e.message?.includes('quota') || e.message?.includes('exceeded')) {
+          // Remove the oldest item and try again
+          currentHistoryToSave = currentHistoryToSave.slice(0, currentHistoryToSave.length - 1);
+        } else {
+          console.error("Error saving history:", e);
+          setHistory(currentHistoryToSave); // Still update state even if localstorage fails for other reasons
+          break;
+        }
+      }
+    }
   };
 
   const loadFromHistory = (item: { image: string; result: AnalysisResult }) => {
@@ -2450,7 +2468,7 @@ export default function App() {
                   className="px-3 py-2 neu-flat text-green-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center gap-1 disabled:opacity-50"
                 >
                   {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                  {isGeneratingImage ? loadingText : 'Oluştur'}
+                  {isGeneratingImage ? 'Üretiliyor...' : 'Oluştur'}
                 </button>
               </div>
             </div>
@@ -2729,6 +2747,34 @@ export default function App() {
               }
             }}
           />
+        )}
+      </AnimatePresenceComponent>
+
+      {/* Loading Indicator Pill */}
+      <AnimatePresenceComponent>
+        {isGeneratingImage && (
+          <MotionDiv
+            initial={{ opacity: 0, y: 20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 20, x: '-50%' }}
+            className="fixed bottom-10 left-1/2 z-[200] flex items-center gap-3 px-6 py-3 rounded-full shadow-2xl font-bold text-sm pointer-events-none bg-blue-600 text-white"
+          >
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <div className="relative overflow-hidden h-5 min-w-[200px]">
+              <AnimatePresenceComponent mode="wait">
+                <MotionDiv
+                  key={loadingText}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0 whitespace-nowrap"
+                >
+                  {loadingText}
+                </MotionDiv>
+              </AnimatePresenceComponent>
+            </div>
+          </MotionDiv>
         )}
       </AnimatePresenceComponent>
 
