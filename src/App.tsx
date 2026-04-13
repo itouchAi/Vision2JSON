@@ -680,6 +680,19 @@ export default function App() {
   const promptScrollRef = useRef<HTMLDivElement>(null);
   const jsonScrollRef = useRef<HTMLDivElement>(null);
   
+  // New states for enhancements
+  const [toasts, setToasts] = useState<{id: number, message: string, type: 'success'|'info'|'error'}[]>([]);
+  const [loadingText, setLoadingText] = useState("Görsel üretiliyor...");
+  const [isEnhancingMainPrompt, setIsEnhancingMainPrompt] = useState(false);
+
+  const addToast = useCallback((message: string, type: 'success'|'info'|'error' = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  }, []);
+  
   const userPromptRef = useRef(userPrompt);
   useEffect(() => { userPromptRef.current = userPrompt; }, [userPrompt]);
 
@@ -698,6 +711,29 @@ export default function App() {
   const generateRandomImage = async () => {
     const randomPrompt = "A hyper-realistic portrait of the subject in a random cinematic environment, wearing random stylish clothes, shot from a random dynamic camera angle with dramatic lighting.";
     handleGenerateFromBottom(randomPrompt);
+  };
+
+  const enhanceMainPrompt = async () => {
+    if (!userPrompt.trim()) {
+      addToast("Lütfen önce geliştirmek için bir şeyler yazın.", "info");
+      return;
+    }
+    setIsEnhancingMainPrompt(true);
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Aşağıdaki kısa metni, yapay zeka görsel üretimi için harika, detaylı ve profesyonel bir prompta dönüştür. Sadece İngilizce promptu ver, başka hiçbir açıklama yazma. Metin: "${userPrompt}"`,
+      });
+      const enhanced = response.text?.trim();
+      if (enhanced) {
+        setUserPrompt(enhanced);
+        addToast("Prompt başarıyla geliştirildi! 🪄", "success");
+      }
+    } catch (err) {
+      addToast("Prompt geliştirilirken bir hata oluştu.", "error");
+    } finally {
+      setIsEnhancingMainPrompt(false);
+    }
   };
 
   const getChangedValues = (current: any, initial: any): string[] => {
@@ -755,6 +791,21 @@ export default function App() {
     setError(null);
     setGeneratedImageUrl(null);
 
+    const loadingPhrases = [
+      "Pikseller hizalanıyor...",
+      "Işık ve gölgeler ayarlanıyor...",
+      "Yapay zeka fırçasını hazırlıyor...",
+      "Detaylar işleniyor...",
+      "Harika bir şeyler ortaya çıkıyor...",
+      "Neredeyse hazır..."
+    ];
+    setLoadingText(loadingPhrases[0]);
+    let phraseIndex = 0;
+    const loadingInterval = setInterval(() => {
+      phraseIndex = (phraseIndex + 1) % loadingPhrases.length;
+      setLoadingText(loadingPhrases[phraseIndex]);
+    }, 2000);
+
     try {
       let finalPrompt = promptText;
       if (activeTab === 'json') {
@@ -784,13 +835,16 @@ export default function App() {
         if (part.inlineData) {
           setGeneratedImageUrl(`data:image/png;base64,${part.inlineData.data}`);
           setIsModalOpen(true);
+          addToast("Görsel başarıyla üretildi! 🎨", "success");
           break;
         }
       }
     } catch (err: any) {
       console.error(err);
       setError("Görsel üretilirken bir hata oluştu.");
+      addToast("Görsel üretilirken bir hata oluştu.", "error");
     } finally {
+      clearInterval(loadingInterval);
       setIsGeneratingImage(false);
     }
   };
@@ -920,6 +974,7 @@ export default function App() {
       bottomRecognitionRef.current?.stop();
     } else {
       setIsBottomListening(true);
+      addToast("Mikrofon dinleniyor... 🎤", "info");
       try { bottomRecognitionRef.current?.start(); } catch(e) {}
     }
   };
@@ -997,6 +1052,7 @@ export default function App() {
         recognitionRef.current?.start();
       } catch (e) {}
       setIsListening(true);
+      addToast("Sohbet mikrofonu dinleniyor... 🎤", "info");
     }
   };
   const [chatInput, setChatInput] = useState("");
@@ -1745,6 +1801,7 @@ export default function App() {
     if (result) {
       navigator.clipboard.writeText(JSON.stringify(result, null, 2));
       setCopied(true);
+      addToast("JSON başarıyla kopyalandı! 📋", "success");
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -2255,6 +2312,15 @@ export default function App() {
                     className="absolute inset-0 w-full h-full bg-transparent resize-none focus:outline-none text-sm leading-relaxed font-sans p-4 text-[#2d3748] dark:text-gray-300 custom-scrollbar"
                     style={{ color: 'inherit', background: 'transparent' }}
                   />
+                  {/* Magic Wand Button */}
+                  <button
+                    onClick={enhanceMainPrompt}
+                    disabled={isEnhancingMainPrompt || !userPrompt.trim()}
+                    className="absolute top-4 right-4 p-2 neu-flat text-blue-500 rounded-xl hover:text-blue-600 active:neu-pressed transition-all disabled:opacity-50 z-10"
+                    title="Promptu Yapay Zeka ile Geliştir"
+                  >
+                    {isEnhancingMainPrompt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                  </button>
                 </div>
               ) : (
                 <>
@@ -2384,7 +2450,7 @@ export default function App() {
                   className="px-3 py-2 neu-flat text-green-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center gap-1 disabled:opacity-50"
                 >
                   {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                  Oluştur
+                  {isGeneratingImage ? loadingText : 'Oluştur'}
                 </button>
               </div>
             </div>
@@ -2665,6 +2731,31 @@ export default function App() {
           />
         )}
       </AnimatePresenceComponent>
+
+      {/* Toast Container */}
+      <div className="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none">
+        <AnimatePresenceComponent>
+          {toasts.map(toast => (
+            <MotionDiv
+              key={toast.id}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.9 }}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl font-bold text-sm pointer-events-auto",
+                toast.type === 'success' ? "bg-green-500 text-white" :
+                toast.type === 'error' ? "bg-red-500 text-white" :
+                "bg-blue-500 text-white"
+              )}
+            >
+              {toast.type === 'success' && <Check className="w-4 h-4" />}
+              {toast.type === 'error' && <X className="w-4 h-4" />}
+              {toast.type === 'info' && <Sparkles className="w-4 h-4" />}
+              {toast.message}
+            </MotionDiv>
+          ))}
+        </AnimatePresenceComponent>
+      </div>
 
       <PoseStudioModal 
         isOpen={isPoseStudioOpen} 
