@@ -2456,6 +2456,14 @@ export default function App() {
                   Gönder
                 </button>
                 <button
+                  onClick={upgradeToHyperRealistic}
+                  disabled={isUpgrading || isGeneratingImage || isAnalyzing || !result}
+                  className="px-3 py-2 neu-flat text-purple-600 font-bold rounded-xl hover:neu-pressed transition-all flex items-center justify-center disabled:opacity-50"
+                  title={t.upgrade}
+                >
+                  {isUpgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                </button>
+                <button
                   onClick={() => {
                     if (activeTab === 'prompt' && !userPrompt.trim() && !bottomInput.trim()) {
                       setShowEmptyPromptWarning(true);
