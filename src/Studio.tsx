@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useDropzone, DropzoneOptions } from 'react-dropzone';
 import { GoogleGenAI, Type } from "@google/genai";
 import { HexColorPicker } from "react-colorful";
@@ -1894,10 +1895,16 @@ export default function App() {
   };
 
   return (
-    <div className={cn(
-      "min-h-screen transition-colors duration-500 bg-transparent",
-      (isDarkMode || themeMode === 'liquid') ? "text-white" : "text-[#2d3748]"
-    )}>
+    <MotionDiv
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className={cn(
+        "min-h-screen transition-colors duration-500 bg-transparent",
+        (isDarkMode || themeMode === 'liquid') ? "text-white" : "text-[#2d3748]"
+      )}
+    >
       {themeMode === 'liquid' && <LiquidBackground />}
       <header className={cn(
         "sticky top-0 z-50 mb-8 transition-colors duration-500",
@@ -1907,9 +1914,9 @@ export default function App() {
       )}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm">
+            <Link to="/" className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm hover:text-blue-600 transition-all active:neu-pressed active:scale-95" title="Şov Ekranına Dön">
               <Maximize2 className="w-5 h-5" />
-            </div>
+            </Link>
             <h1 className={cn(
               "text-xl font-bold tracking-tight",
               themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white"
@@ -1926,7 +1933,13 @@ export default function App() {
               3D Pose Studio
             </button>
             <button
-              onClick={() => setIsStudioOpen(true)}
+              onClick={() => {
+                if (!result) {
+                  addToast(language === 'TR' ? 'Lütfen önce bir görsel yükleyip analiz edin.' : 'Please upload and analyze an image first.', 'info');
+                  return;
+                }
+                setIsStudioOpen(true);
+              }}
               className="flex items-center gap-2 px-4 h-10 neu-flat rounded-xl text-sm font-bold text-green-500 hover:text-green-600 transition-colors"
             >
               <User className="w-4 h-4" />
@@ -3248,7 +3261,7 @@ export default function App() {
           </div>
         )}
       </AnimatePresenceComponent>
-    </div>
+    </MotionDiv>
   );
 }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 
 const FadingVideo = ({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) => {
@@ -121,7 +121,13 @@ const BlurText = ({ text, className }: { text: string; className?: string }) => 
 
 export default function Landing() {
   return (
-    <div className="bg-black text-white min-h-screen font-body overflow-x-hidden">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6, ease: "easeInOut" }}
+      className="bg-black text-white min-h-screen font-body overflow-x-hidden"
+    >
       {/* Section 1 - Hero */}
       <section className="relative w-full h-screen overflow-hidden flex flex-col pt-4 px-4 bg-black">
         <FadingVideo
@@ -341,6 +347,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 }
