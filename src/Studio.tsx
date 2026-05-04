@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { FadingVideo } from './Landing';
 import { useDropzone, DropzoneOptions } from 'react-dropzone';
 import { GoogleGenAI, Type } from "@google/genai";
 import { HexColorPicker } from "react-colorful";
@@ -1943,11 +1944,11 @@ export default function App() {
       {themeMode === 'liquid' && <LiquidBackground />}
       {themeMode === 'beta' && (
         <div className="fixed inset-0 z-[-1] overflow-hidden bg-black flex items-center justify-center">
-          <video
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
+          {/* Eski video: src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4" */}
+          <FadingVideo
+            srcs={["/1.mp4", "/2.mp4"]}
             className="absolute object-cover object-top"
             style={{ width: '120vw', height: '120vh', filter: 'blur(35px) brightness(0.5)' }}
-            autoPlay muted loop playsInline
           />
         </div>
       )}

@@ -2,14 +2,18 @@ import React, { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 
-const FadingVideo = ({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) => {
+export const FadingVideo = ({ src, srcs, className, style }: { src?: string; srcs?: string[]; className?: string; style?: React.CSSProperties }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const fadingOutRef = useRef(false);
   const rafId = useRef<number | null>(null);
+  const [currentIdx, setCurrentIdx] = React.useState(0);
+
+  const videoList = srcs || (src ? [src] : []);
+  const currentSrc = videoList[currentIdx] || '';
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !currentSrc) return;
 
     video.style.opacity = '0';
 
@@ -49,10 +53,15 @@ const FadingVideo = ({ src, className, style }: { src: string; className?: strin
     const handleEnded = () => {
       video.style.opacity = '0';
       setTimeout(() => {
-        video.currentTime = 0;
-        video.play().catch(() => {});
-        fadingOutRef.current = false;
-        fadeTo(1, 500);
+        if (videoList.length > 1) {
+          fadingOutRef.current = false;
+          setCurrentIdx((prevIdx) => (prevIdx + 1) % videoList.length);
+        } else {
+          video.currentTime = 0;
+          video.play().catch(() => {});
+          fadingOutRef.current = false;
+          fadeTo(1, 500);
+        }
       }, 100);
     };
 
@@ -66,12 +75,14 @@ const FadingVideo = ({ src, className, style }: { src: string; className?: strin
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [currentSrc, videoList.length]);
+
+  if (!currentSrc) return null;
 
   return (
     <video
       ref={videoRef}
-      src={src}
+      src={currentSrc}
       className={className}
       style={style}
       autoPlay
@@ -136,8 +147,9 @@ export default function Landing() {
           transition={{ duration: 0.6, ease: "easeInOut" }}
           className="absolute inset-0 z-0"
         >
+          {/* Eski video: src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4" */}
           <FadingVideo
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
+            srcs={["/1.mp4", "/2.mp4"]}
             className="absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top"
             style={{ width: '120%', height: '120%' }}
           />
@@ -279,7 +291,7 @@ export default function Landing() {
       {/* Section 2 - Capabilities */}
       <section className="relative min-h-screen w-full flex flex-col pt-24 pb-10 px-8 md:px-16 lg:px-20 bg-black">
         <FadingVideo
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_094631_d30ab262-45ee-4b7d-99f3-5d5848c8ef13.mp4"
+          srcs={["/2.mp4", "/1.mp4"]}
           className="absolute inset-0 w-full h-full object-cover z-0"
         />
         
