@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FadingVideo } from './Landing';
+import { FadingVideo } from './components/FadingVideo';
 import { useDropzone, DropzoneOptions } from 'react-dropzone';
 import { GoogleGenAI, Type } from "@google/genai";
 import { HexColorPicker } from "react-colorful";
@@ -1932,9 +1932,9 @@ export default function App() {
       animate="show"
       exit="exit"
       variants={{
-        hidden: { opacity: 0 },
-        show: { opacity: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 } },
-        exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
+        hidden: { x: 100, opacity: 0 },
+        show: { x: 0, opacity: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 } },
+        exit: { x: -100, opacity: 0, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
       }}
       className={cn(
         "min-h-screen transition-colors duration-500 flex flex-col w-full z-10",

@@ -4,96 +4,7 @@ import { Link } from 'react-router-dom';
 import { Maximize2, Box, User, Settings2 } from 'lucide-react';
 import { cn } from './lib/utils';
 
-export const FadingVideo = ({ src, srcs, className, style }: { src?: string; srcs?: string[]; className?: string; style?: React.CSSProperties }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const fadingOutRef = useRef(false);
-  const rafId = useRef<number | null>(null);
-  const [currentIdx, setCurrentIdx] = React.useState(0);
-
-  const videoList = srcs || (src ? [src] : []);
-  const currentSrc = videoList[currentIdx] || '';
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !currentSrc) return;
-
-    video.style.opacity = '0';
-
-    const fadeTo = (targetOpacity: number, duration: number) => {
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-      
-      const startOpacity = parseFloat(video.style.opacity || '0');
-      const startTime = performance.now();
-
-      const animate = (currentTime: number) => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        video.style.opacity = (startOpacity + (targetOpacity - startOpacity) * progress).toString();
-
-        if (progress < 1) {
-          rafId.current = requestAnimationFrame(animate);
-        }
-      };
-
-      rafId.current = requestAnimationFrame(animate);
-    };
-
-    const handleLoadedData = () => {
-      video.style.opacity = '0';
-      video.play().catch(() => {});
-      fadeTo(1, 500);
-    };
-
-    const handleTimeUpdate = () => {
-      if (video.duration - video.currentTime <= 0.55 && video.duration > 0 && !fadingOutRef.current) {
-        fadingOutRef.current = true;
-        fadeTo(0, 500);
-      }
-    };
-
-    const handleEnded = () => {
-      video.style.opacity = '0';
-      setTimeout(() => {
-        if (videoList.length > 1) {
-          fadingOutRef.current = false;
-          setCurrentIdx((prevIdx) => (prevIdx + 1) % videoList.length);
-        } else {
-          video.currentTime = 0;
-          video.play().catch(() => {});
-          fadingOutRef.current = false;
-          fadeTo(1, 500);
-        }
-      }, 100);
-    };
-
-    video.addEventListener('loadeddata', handleLoadedData);
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('ended', handleEnded);
-
-    return () => {
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-      video.removeEventListener('loadeddata', handleLoadedData);
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('ended', handleEnded);
-    };
-  }, [currentSrc, videoList.length]);
-
-  if (!currentSrc) return null;
-
-  return (
-    <video
-      ref={videoRef}
-      src={currentSrc}
-      className={className}
-      style={style}
-      autoPlay
-      muted
-      playsInline
-      preload="auto"
-    />
-  );
-};
+import { FadingVideo } from './components/FadingVideo';
 
 const BlurText = ({ text, className }: { text: string; className?: string }) => {
   const words = text.split(' ');
@@ -135,9 +46,9 @@ const BlurText = ({ text, className }: { text: string; className?: string }) => 
 export default function Landing() {
   return (
     <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.5 } }}
+      initial={{ x: -100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 100, opacity: 0, transition: { duration: 0.5 } }}
       className="text-white min-h-screen font-body overflow-x-hidden w-full z-0 bg-black"
     >
       {/* Navbar moved outside section to remain truly fixed relative to window */}
@@ -148,9 +59,9 @@ export default function Landing() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="fixed top-4 left-4 right-4 lg:left-8 lg:right-8 z-50 flex items-center justify-between rounded-2xl border border-white/5"
         style={{
-          background: 'rgba(0, 0, 0, 0.05)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
+          background: 'rgba(255, 255, 255, 0.01)',
+          backdropFilter: 'blur(1px)',
+          WebkitBackdropFilter: 'blur(1px)',
         }}
       >
         <div className="w-full px-6 h-16 flex items-center justify-between relative">

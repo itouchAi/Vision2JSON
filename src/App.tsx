@@ -8,7 +8,7 @@ function AnimatedRoutes() {
   const location = useLocation();
   
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Landing />} />
         <Route path="/studio" element={<Studio />} />
