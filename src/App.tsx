@@ -8,12 +8,14 @@ function AnimatedRoutes() {
   const location = useLocation();
   
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Landing />} />
-        <Route path="/studio" element={<Studio />} />
-      </Routes>
-    </AnimatePresence>
+    <div className="w-full min-h-screen grid" style={{ gridTemplateColumns: 'minmax(0, 1fr)', gridTemplateRows: 'minmax(0, auto)' }}>
+      <AnimatePresence>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<div style={{ gridArea: '1 / 1 / 2 / 2' }}><Landing /></div>} />
+          <Route path="/studio" element={<div style={{ gridArea: '1 / 1 / 2 / 2' }}><Studio /></div>} />
+        </Routes>
+      </AnimatePresence>
+    </div>
   );
 }
 

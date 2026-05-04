@@ -46,6 +46,14 @@ const revealContainer = {
       staggerChildren: 0.1,
       delayChildren: 0.1,
     }
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+      when: "afterChildren"
+    }
   }
 };
 
@@ -61,26 +69,44 @@ const revealItem = {
       damping: 20,
       mass: 1
     } 
+  },
+  exit: {
+    opacity: 0, 
+    y: 40, 
+    scale: 0.95,
+    transition: { duration: 0.3 }
   }
 };
 
 const revealItemLeft = {
-  hidden: { opacity: 0, x: -40, scale: 0.95 },
+  hidden: { opacity: 0, x: -60, filter: 'blur(5px)' },
   show: { 
     opacity: 1, 
     x: 0, 
-    scale: 1,
-    transition: { type: "spring", stiffness: 200, damping: 20 } 
+    filter: 'blur(0px)',
+    transition: { type: "tween", ease: "easeOut", duration: 0.5 } 
+  },
+  exit: {
+    opacity: 0,
+    x: -60,
+    filter: 'blur(5px)',
+    transition: { duration: 0.4, ease: "easeIn" }
   }
 };
 
 const revealItemRight = {
-  hidden: { opacity: 0, x: 40, scale: 0.95 },
+  hidden: { opacity: 0, x: 60, filter: 'blur(5px)' },
   show: { 
     opacity: 1, 
     x: 0, 
-    scale: 1,
-    transition: { type: "spring", stiffness: 200, damping: 20 } 
+    filter: 'blur(0px)',
+    transition: { type: "tween", ease: "easeOut", duration: 0.5 } 
+  },
+  exit: {
+    opacity: 0,
+    x: 60,
+    filter: 'blur(5px)',
+    transition: { duration: 0.4, ease: "easeIn" }
   }
 };
 
@@ -656,7 +682,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [themeMode, setThemeMode] = useState<'classic' | 'liquid'>('classic');
+  const [themeMode, setThemeMode] = useState<'classic' | 'liquid' | 'beta'>('beta');
   const [themeColor, setThemeColor] = useState('#e6e9f0');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [language, setLanguage] = useState<'TR' | 'ENG'>('TR');
@@ -1170,9 +1196,9 @@ export default function App() {
   }, [askAI]);
 
   useEffect(() => {
-    if (isDarkMode || themeMode === 'liquid') {
+    if (isDarkMode || themeMode === 'liquid' || themeMode === 'beta') {
       document.body.classList.add('dark-theme');
-      setThemeColor(themeMode === 'liquid' ? '#05050a' : '#1e2128');
+      setThemeColor(themeMode === 'liquid' ? '#05050a' : themeMode === 'beta' ? '#000000' : '#1e2128');
     } else {
       document.body.classList.remove('dark-theme');
       setThemeColor('#e6e9f0');
@@ -1184,6 +1210,11 @@ export default function App() {
       document.body.classList.add('liquid-theme');
     } else {
       document.body.classList.remove('liquid-theme');
+    }
+    if (themeMode === 'beta') {
+      document.body.classList.add('beta-theme');
+    } else {
+      document.body.classList.remove('beta-theme');
     }
   }, [themeMode]);
 
@@ -1896,21 +1927,37 @@ export default function App() {
 
   return (
     <MotionDiv
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
+      initial="hidden"
+      animate="show"
+      exit="exit"
+      variants={{
+        hidden: { opacity: 0, scale: 0.98 },
+        show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 } },
+        exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
+      }}
       className={cn(
-        "min-h-screen transition-colors duration-500 bg-transparent",
-        (isDarkMode || themeMode === 'liquid') ? "text-white" : "text-[#2d3748]"
+        "min-h-screen transition-colors duration-500 bg-transparent flex flex-col w-full z-10",
+        (isDarkMode || themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748]"
       )}
     >
       {themeMode === 'liquid' && <LiquidBackground />}
+      {themeMode === 'beta' && (
+        <div className="fixed inset-0 z-[-1] overflow-hidden bg-black flex items-center justify-center">
+          <video
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
+            className="absolute object-cover object-top"
+            style={{ width: '120vw', height: '120vh', filter: 'blur(35px) brightness(0.5)' }}
+            autoPlay muted loop playsInline
+          />
+        </div>
+      )}
       <header className={cn(
         "sticky top-0 z-50 mb-8 transition-colors duration-500",
         themeMode === 'liquid' 
           ? "bg-[#05050a] border-none" 
-          : "border-b neu-flat border-white/5"
+          : themeMode === 'beta'
+            ? "border-b border-white/5 bg-transparent backdrop-blur-sm"
+            : "border-b neu-flat border-white/5"
       )}>
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative">
           <div className="flex items-center gap-3">
@@ -1919,7 +1966,7 @@ export default function App() {
             </Link>
             <h1 className={cn(
               "text-xl font-bold tracking-tight",
-              themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white"
+              (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white"
             )}>
               Vision2JSON
             </h1>
@@ -2039,6 +2086,23 @@ export default function App() {
               <div className="flex items-center gap-2">
                 {/* Liquid Theme Toggle */}
                 <button
+                  onClick={() => {
+                    // @ts-ignore - View Transitions API
+                    if (document.startViewTransition) {
+                      document.startViewTransition(() => setThemeMode(themeMode === 'beta' ? 'classic' : 'beta'));
+                    } else {
+                      setThemeMode(themeMode === 'beta' ? 'classic' : 'beta');
+                    }
+                  }}
+                  className={cn(
+                    "px-4 h-10 rounded-xl flex items-center justify-center transition-all relative overflow-hidden font-bold text-sm",
+                    themeMode === 'beta' ? "bg-white text-black hover:bg-gray-100" : "neu-flat text-[#718096] hover:text-white"
+                  )}
+                >
+                  Beta Geçiş
+                </button>
+
+                <button
                   onClick={toggleThemeMode}
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center transition-all relative overflow-hidden",
@@ -2125,6 +2189,7 @@ export default function App() {
           variants={revealContainer}
           initial="hidden"
           animate="show"
+          exit="exit"
           className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-end"
         >
           <MotionDiv variants={revealItemLeft} className="lg:col-span-5 space-y-2">
@@ -2132,9 +2197,9 @@ export default function App() {
               <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500">
                 <Scan className="w-5 h-5" />
               </div>
-              <h2 className={cn("text-xl font-bold tracking-tight", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.title}</h2>
+              <h2 className={cn("text-xl font-bold tracking-tight", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.title}</h2>
             </div>
-            <p className={cn("text-sm max-w-md ml-[52px]", themeMode === 'liquid' ? "text-white/80" : "text-[#718096] dark:text-gray-400")}>
+            <p className={cn("text-sm max-w-md ml-[52px]", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/80" : "text-[#718096] dark:text-gray-400")}>
               {t.subtitle}
             </p>
           </MotionDiv>
@@ -2145,7 +2210,7 @@ export default function App() {
                 <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-orange-500">
                   <Code className="w-5 h-5" />
                 </div>
-                <h3 className={cn("font-bold text-xl", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>
+                <h3 className={cn("font-bold text-xl", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white")}>
                   {activeTab === 'prompt' ? "Prompt Girişi" : "JSON Çıktısı"}
                 </h3>
               </div>
@@ -2186,6 +2251,7 @@ export default function App() {
           variants={revealContainer}
           initial="hidden"
           animate="show"
+          exit="exit"
           className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
         >
           
@@ -2275,7 +2341,7 @@ export default function App() {
                   variants={revealContainer}
                   initial="hidden"
                   animate="show"
-                  exit="hidden"
+                  exit="exit"
                   className="flex flex-col gap-4"
                 >
                   <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
@@ -2283,8 +2349,8 @@ export default function App() {
                       <Camera className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.angle}</p>
-                      <p className={cn("text-xs font-bold", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.camera.angle}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.angle}</p>
+                      <p className={cn("text-xs font-bold", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.camera.angle}</p>
                     </div>
                   </MotionDiv>
                   <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
@@ -2292,8 +2358,8 @@ export default function App() {
                       <Sun className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.light}</p>
-                      <p className={cn("text-xs font-bold", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.lighting.quality}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.light}</p>
+                      <p className={cn("text-xs font-bold", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.lighting.quality}</p>
                     </div>
                   </MotionDiv>
                   <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
@@ -2301,8 +2367,8 @@ export default function App() {
                       <User className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.ethnicity}</p>
-                      <p className={cn("text-xs font-bold", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.subject.ethnicity}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.ethnicity}</p>
+                      <p className={cn("text-xs font-bold", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.subject.ethnicity}</p>
                     </div>
                   </MotionDiv>
                   <MotionDiv variants={revealItem} className="neu-flat p-4 rounded-2xl flex flex-col items-center gap-2 group hover:neu-pressed transition-all text-center">
@@ -2310,8 +2376,8 @@ export default function App() {
                       <Layout className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.style}</p>
-                      <p className={cn("text-xs font-bold", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.technical.style}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-wider", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>{t.style}</p>
+                      <p className={cn("text-xs font-bold", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white")}>{result.technical.style}</p>
                     </div>
                   </MotionDiv>
                 </MotionDiv>
@@ -2503,7 +2569,7 @@ export default function App() {
                 <div className="p-6 border-b border-[#c8cbd2]/20 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
                   <div className="flex items-center gap-2">
                     <Wand2 className="w-5 h-5 text-blue-500" />
-                    <h4 className={cn("text-sm font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.suggestions}</h4>
+                    <h4 className={cn("text-sm font-bold uppercase tracking-wider", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.suggestions}</h4>
                   </div>
                 </div>
                 
@@ -2515,7 +2581,7 @@ export default function App() {
                       style: ["Hyper-realistic", "Cyberpunk", "Vintage film", "Anime style"]
                     }).map(([key, options]) => (
                       <div key={key} className="space-y-3">
-                        <label className={cn("text-[10px] font-bold uppercase tracking-widest ml-1", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>
+                        <label className={cn("text-[10px] font-bold uppercase tracking-widest ml-1", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>
                           {currentSuggestionLabels[key as keyof typeof currentSuggestionLabels] || key}
                         </label>
                         <div className="flex flex-wrap gap-2">
@@ -2554,7 +2620,7 @@ export default function App() {
                               }))}
                               className="w-6 h-6 rounded cursor-pointer border-0 p-0 bg-transparent"
                             />
-                            <span className={cn("text-[10px] font-bold uppercase tracking-widest", themeMode === 'liquid' ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>
+                            <span className={cn("text-[10px] font-bold uppercase tracking-widest", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/70" : "text-[#718096] dark:text-gray-500")}>
                               {t.clothingColor}
                             </span>
                             {selectedSuggestions.clothingColor && (
@@ -2597,11 +2663,11 @@ export default function App() {
                   <div className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-yellow-500">
                     <Zap className="w-5 h-5" />
                   </div>
-                  <h4 className={cn("text-sm font-bold uppercase tracking-wider", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.chatTitle}</h4>
+                  <h4 className={cn("text-sm font-bold uppercase tracking-wider", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white")}>{t.chatTitle}</h4>
                   {chatMessages.length > 0 && (
                     <button 
                       onClick={() => setChatMessages([])} 
-                      className={cn("ml-auto text-[10px] hover:text-red-500 font-bold uppercase tracking-widest transition-colors", themeMode === 'liquid' ? "text-white/70" : "text-[#718096]")}
+                      className={cn("ml-auto text-[10px] hover:text-red-500 font-bold uppercase tracking-widest transition-colors", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/70" : "text-[#718096]")}
                     >
                       Temizle
                     </button>
@@ -2614,7 +2680,7 @@ export default function App() {
                       <div className="w-16 h-16 rounded-full neu-pressed flex items-center justify-center text-blue-500">
                         <Wand2 className="w-8 h-8" />
                       </div>
-                      <p className={cn("text-sm max-w-xs", themeMode === 'liquid' ? "text-white/80" : "text-[#718096]")}>{t.chatContext}</p>
+                      <p className={cn("text-sm max-w-xs", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/80" : "text-[#718096]")}>{t.chatContext}</p>
                     </div>
                   )}
                   {chatMessages.map((msg, idx) => (
@@ -2631,14 +2697,14 @@ export default function App() {
                         "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",
                         msg.role === 'user' 
                           ? "bg-blue-600 text-white rounded-tr-none" 
-                          : cn("neu-flat rounded-tl-none border border-white/5", themeMode === 'liquid' ? "text-white" : "text-[#2d3748] dark:text-gray-200")
+                          : cn("neu-flat rounded-tl-none border border-white/5", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-gray-200")
                       )}>
                         {msg.text}
                       </div>
                     </MotionDiv>
                   ))}
                   {isChatLoading && (
-                    <div className={cn("flex items-center gap-3 ml-2", themeMode === 'liquid' ? "text-white/70" : "text-[#718096]")}>
+                    <div className={cn("flex items-center gap-3 ml-2", (themeMode === 'liquid' || themeMode === 'beta') ? "text-white/70" : "text-[#718096]")}>
                       <div className="flex gap-1">
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />

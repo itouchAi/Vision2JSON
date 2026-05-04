@@ -237,6 +237,50 @@ body {
       var(--glass-inner-light), 
       var(--glass-inner-dark);
   }
+
+  /* Beta Theme Overrides - Obsidian Glass with Blurred Background */
+  .beta-theme {
+    --bg-base: transparent !important;
+  }
+  
+  .beta-theme .neu-flat {
+    background: rgba(255, 255, 255, 0.01) !important;
+    background-blend-mode: luminosity !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: none !important;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    color: #fff !important;
+  }
+  
+  .beta-theme .neu-flat::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.2) 80%,
+    rgba(255, 255, 255, 0.5) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .beta-theme .neu-pressed {
+    background: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: none !important;
+    box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.5), inset -1px -1px 4px rgba(255, 255, 255, 0.05) !important;
+    color: #fff !important;
+  }
   
   .glass-panel {
     background: rgba(255, 255, 255, 0.2);

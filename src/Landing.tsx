@@ -124,20 +124,29 @@ export default function Landing() {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      exit={{ opacity: 0, transition: { duration: 0.6 } }}
       transition={{ duration: 0.6, ease: "easeInOut" }}
-      className="bg-black text-white min-h-screen font-body overflow-x-hidden"
+      className="bg-black text-white min-h-screen font-body overflow-x-hidden w-full z-0"
     >
       {/* Section 1 - Hero */}
       <section className="relative w-full h-screen overflow-hidden flex flex-col pt-4 px-4 bg-black">
-        <FadingVideo
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
-          className="absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top z-0"
-          style={{ width: '120%', height: '120%' }}
-        />
+        <motion.div 
+          exit={{ filter: 'blur(20px)', opacity: 0.5 }}
+          transition={{ duration: 0.5 }}
+          className="absolute inset-0 z-0"
+        >
+          <FadingVideo
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4"
+            className="absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top"
+            style={{ width: '120%', height: '120%' }}
+          />
+        </motion.div>
         
         {/* Navbar */}
-        <nav className="fixed top-4 left-0 right-0 px-8 lg:px-16 z-50 flex items-center justify-between">
+        <motion.nav 
+          exit={{ opacity: 0, y: -20, transition: { duration: 0.4 } }}
+          className="fixed top-4 left-0 right-0 px-8 lg:px-16 z-50 flex items-center justify-between"
+        >
           <div className="w-12 h-12 rounded-full liquid-glass flex items-center justify-center">
             <span className="font-heading italic lowercase text-2xl relative top-0.5">a</span>
           </div>
@@ -157,10 +166,13 @@ export default function Landing() {
           </div>
           
           <div className="w-12 h-12 invisible" />
-        </nav>
+        </motion.nav>
 
         {/* Hero Content */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center pt-16">
+        <motion.div 
+          exit={{ opacity: 0, scale: 0.9, y: 30, filter: 'blur(10px)', transition: { duration: 0.5, ease: "easeIn" } }}
+          className="relative z-10 flex-1 flex flex-col items-center justify-center text-center pt-16"
+        >
           <motion.div
             initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
             animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
@@ -230,10 +242,11 @@ export default function Landing() {
               </div>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
 
         {/* Partners */}
         <motion.div
+          exit={{ opacity: 0, y: 20, transition: { duration: 0.4 } }}
           initial={{ opacity: 0, filter: 'blur(5px)', y: 10 }}
           animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
           transition={{ duration: 1, delay: 1.4 }}
