@@ -122,17 +122,18 @@ const BlurText = ({ text, className }: { text: string; className?: string }) => 
 export default function Landing() {
   return (
     <motion.div 
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.6 } }}
-      transition={{ duration: 0.6, ease: "easeInOut" }}
-      className="bg-black text-white min-h-screen font-body overflow-x-hidden w-full z-0"
+      exit={{ opacity: 1 }}
+      className="text-white min-h-screen font-body overflow-x-hidden w-full z-0 bg-transparent"
     >
       {/* Section 1 - Hero */}
-      <section className="relative w-full h-screen overflow-hidden flex flex-col pt-4 px-4 bg-black">
+      <section className="relative w-full h-screen overflow-hidden flex flex-col pt-4 px-4 bg-transparent">
         <motion.div 
-          exit={{ filter: 'blur(20px)', opacity: 0.5 }}
-          transition={{ duration: 0.5 }}
+          initial={{ filter: 'blur(35px) brightness(0.5)' }}
+          animate={{ filter: 'blur(0px) brightness(1)' }}
+          exit={{ filter: 'blur(35px) brightness(0.5)' }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
           className="absolute inset-0 z-0"
         >
           <FadingVideo
@@ -144,7 +145,10 @@ export default function Landing() {
         
         {/* Navbar */}
         <motion.nav 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20, transition: { duration: 0.4 } }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           className="fixed top-4 left-0 right-0 px-8 lg:px-16 z-50 flex items-center justify-between"
         >
           <div className="w-12 h-12 rounded-full liquid-glass flex items-center justify-center">
@@ -169,57 +173,60 @@ export default function Landing() {
         </motion.nav>
 
         {/* Hero Content */}
-        <motion.div 
-          exit={{ opacity: 0, scale: 0.9, y: 30, filter: 'blur(10px)', transition: { duration: 0.5, ease: "easeIn" } }}
-          className="relative z-10 flex-1 flex flex-col items-center justify-center text-center pt-16"
-        >
-          <motion.div
-            initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
-            animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.4 }}
-            className="liquid-glass rounded-full px-3.5 py-1.5 flex items-center gap-3 mb-6"
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center pt-16">
+          <motion.div 
+            exit={{ opacity: 0, scale: 0.9, filter: 'blur(10px)', transition: { duration: 0.5, ease: "easeIn" } }}
+            className="flex flex-col items-center justify-center"
           >
-            <span className="bg-white text-black px-3 py-1 text-xs font-semibold rounded-full">New</span>
-            <span className="text-sm text-white/90 pr-3 font-body font-medium">Maiden Crewed Voyage to Mars Arrives 2026</span>
+            <motion.div
+              initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
+              animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: 0.4 }}
+              className="liquid-glass rounded-full px-3.5 py-1.5 flex items-center gap-3 mb-6"
+            >
+              <span className="bg-white text-black px-3 py-1 text-xs font-semibold rounded-full">New</span>
+              <span className="text-sm text-white/90 pr-3 font-body font-medium">Maiden Crewed Voyage to Mars Arrives 2026</span>
+            </motion.div>
+
+            <BlurText 
+              text="Venture Past Our Sky Across the Universe" 
+              className="text-6xl md:text-7xl lg:text-[5.5rem] font-heading italic text-white leading-[0.8] max-w-2xl tracking-[-4px]"
+            />
+
+            <motion.p
+              initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
+              animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: 0.8 }}
+              className="mt-4 text-sm md:text-base text-white max-w-2xl font-body font-light leading-tight px-4"
+            >
+              Discover the universe in ways once unimaginable. Our pioneering vessels and breakthrough engineering bring deep-space exploration within reach—secure and extraordinary.
+            </motion.p>
+
+            <motion.div
+              initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
+              animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: 1.1 }}
+              className="flex items-center gap-6 mt-6"
+            >
+              <Link to="/studio" className="liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium text-white flex items-center gap-2 hover:bg-white/10 transition-colors">
+                Start Your Voyage
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 17L17 7" /><path d="M7 7h10v10" />
+                </svg>
+              </Link>
+              <button className="flex items-center gap-2 text-sm text-white/90 font-medium hover:text-white transition-colors group px-3 py-2">
+                View Liftoff
+                <svg className="w-4 h-4 fill-white group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                  <polygon points="6 4 20 12 6 20 6 4" />
+                </svg>
+              </button>
+            </motion.div>
           </motion.div>
 
-          <BlurText 
-            text="Venture Past Our Sky Across the Universe" 
-            className="text-6xl md:text-7xl lg:text-[5.5rem] font-heading italic text-white leading-[0.8] max-w-2xl tracking-[-4px]"
-          />
-
-          <motion.p
-            initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
-            animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.8 }}
-            className="mt-4 text-sm md:text-base text-white max-w-2xl font-body font-light leading-tight px-4"
-          >
-            Discover the universe in ways once unimaginable. Our pioneering vessels and breakthrough engineering bring deep-space exploration within reach—secure and extraordinary.
-          </motion.p>
-
           <motion.div
             initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
             animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut', delay: 1.1 }}
-            className="flex items-center gap-6 mt-6"
-          >
-            <Link to="/studio" className="liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium text-white flex items-center gap-2 hover:bg-white/10 transition-colors">
-              Start Your Voyage
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M7 17L17 7" /><path d="M7 7h10v10" />
-              </svg>
-            </Link>
-            <button className="flex items-center gap-2 text-sm text-white/90 font-medium hover:text-white transition-colors group px-3 py-2">
-              View Liftoff
-              <svg className="w-4 h-4 fill-white group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                <polygon points="6 4 20 12 6 20 6 4" />
-              </svg>
-            </button>
-          </motion.div>
-
-          <motion.div
-            initial={{ filter: 'blur(10px)', opacity: 0, y: 20 }}
-            animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 150, filter: 'blur(10px)', transition: { duration: 0.6, ease: "easeIn" } }}
             transition={{ duration: 0.8, ease: 'easeOut', delay: 1.3 }}
             className="flex flex-wrap justify-center items-stretch gap-4 mt-8 px-4"
           >
@@ -242,7 +249,7 @@ export default function Landing() {
               </div>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
 
         {/* Partners */}
         <motion.div

@@ -44,7 +44,7 @@ const revealContainer = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.1,
+      delayChildren: 0.4,
     }
   },
   exit: {
@@ -79,34 +79,34 @@ const revealItem = {
 };
 
 const revealItemLeft = {
-  hidden: { opacity: 0, x: -60, filter: 'blur(5px)' },
+  hidden: { opacity: 0, x: -80, filter: 'blur(8px)' },
   show: { 
     opacity: 1, 
     x: 0, 
     filter: 'blur(0px)',
-    transition: { type: "tween", ease: "easeOut", duration: 0.5 } 
+    transition: { type: "tween", ease: "easeOut", duration: 0.7 } 
   },
   exit: {
     opacity: 0,
-    x: -60,
-    filter: 'blur(5px)',
-    transition: { duration: 0.4, ease: "easeIn" }
+    x: -80,
+    filter: 'blur(8px)',
+    transition: { duration: 0.5, ease: "easeIn" }
   }
 };
 
 const revealItemRight = {
-  hidden: { opacity: 0, x: 60, filter: 'blur(5px)' },
+  hidden: { opacity: 0, x: 80, filter: 'blur(8px)' },
   show: { 
     opacity: 1, 
     x: 0, 
     filter: 'blur(0px)',
-    transition: { type: "tween", ease: "easeOut", duration: 0.5 } 
+    transition: { type: "tween", ease: "easeOut", duration: 0.7 } 
   },
   exit: {
     opacity: 0,
-    x: 60,
-    filter: 'blur(5px)',
-    transition: { duration: 0.4, ease: "easeIn" }
+    x: 80,
+    filter: 'blur(8px)',
+    transition: { duration: 0.5, ease: "easeIn" }
   }
 };
 
@@ -1931,9 +1931,9 @@ export default function App() {
       animate="show"
       exit="exit"
       variants={{
-        hidden: { opacity: 0, scale: 0.98 },
+        hidden: { opacity: 1, scale: 1 },
         show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 } },
-        exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
+        exit: { opacity: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
       }}
       className={cn(
         "min-h-screen transition-colors duration-500 bg-transparent flex flex-col w-full z-10",
@@ -1951,27 +1951,34 @@ export default function App() {
           />
         </div>
       )}
-      <header className={cn(
-        "sticky top-0 z-50 mb-8 transition-colors duration-500",
-        themeMode === 'liquid' 
-          ? "bg-[#05050a] border-none" 
-          : themeMode === 'beta'
-            ? "border-b border-white/5 bg-transparent backdrop-blur-sm"
-            : "border-b neu-flat border-white/5"
-      )}>
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm hover:text-blue-600 transition-all active:neu-pressed active:scale-95" title="Şov Ekranına Dön">
-              <Maximize2 className="w-5 h-5" />
-            </Link>
-            <h1 className={cn(
-              "text-xl font-bold tracking-tight",
-              (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white"
-            )}>
-              Vision2JSON
-            </h1>
-          </div>
-          <div className="flex items-center gap-4">
+      <MotionDiv
+        variants={{
+          hidden: { opacity: 0, y: -20 },
+          show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut", delay: 0.4 } },
+          exit: { opacity: 0, y: -20, transition: { duration: 0.4, ease: "easeIn" } }
+        }}
+      >
+        <header className={cn(
+          "sticky top-0 z-50 mb-8 transition-colors duration-500",
+          themeMode === 'liquid' 
+            ? "bg-[#05050a] border-none" 
+            : themeMode === 'beta'
+              ? "border-b border-white/5 bg-transparent backdrop-blur-sm"
+              : "border-b neu-flat border-white/5"
+        )}>
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative">
+            <div className="flex items-center gap-3">
+              <Link to="/" className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm hover:text-blue-600 transition-all active:neu-pressed active:scale-95" title="Şov Ekranına Dön">
+                <Maximize2 className="w-5 h-5" />
+              </Link>
+              <h1 className={cn(
+                "text-xl font-bold tracking-tight",
+                (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white"
+              )}>
+                Vision2JSON
+              </h1>
+            </div>
+            <div className="flex items-center gap-4">
             <button
               onClick={() => setIsPoseStudioOpen(true)}
               className="flex items-center gap-2 px-4 h-10 neu-flat rounded-xl text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
@@ -2182,6 +2189,7 @@ export default function App() {
           <div className="absolute top-full left-0 right-0 h-16 bg-gradient-to-b from-[#05050a] to-transparent pointer-events-none" />
         )}
       </header>
+      </MotionDiv>
 
       <main className="max-w-7xl mx-auto px-6 py-4">
         {/* Headers Row */}
