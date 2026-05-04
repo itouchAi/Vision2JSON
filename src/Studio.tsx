@@ -1932,23 +1932,23 @@ export default function App() {
       animate="show"
       exit="exit"
       variants={{
-        hidden: { opacity: 1, scale: 1 },
-        show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 } },
-        exit: { opacity: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 } },
+        exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
       }}
       className={cn(
-        "min-h-screen transition-colors duration-500 bg-transparent flex flex-col w-full z-10",
+        "min-h-screen transition-colors duration-500 flex flex-col w-full z-10",
+        themeMode === 'liquid' ? "bg-[#05050a]" : "bg-[#e6e9f0] dark:bg-[#1e2128]",
         (isDarkMode || themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748]"
       )}
     >
       {themeMode === 'liquid' && <LiquidBackground />}
       {themeMode === 'beta' && (
         <div className="fixed inset-0 z-[-1] overflow-hidden bg-black flex items-center justify-center">
-          {/* Eski video: src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4" */}
           <FadingVideo
             srcs={["/1.mp4", "/2.mp4"]}
-            className="absolute object-cover object-top"
-            style={{ width: '120vw', height: '120vh', filter: 'blur(35px) brightness(0.5)' }}
+            className="absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top"
+            style={{ width: '120%', height: '120%', filter: 'blur(35px) brightness(0.5)' }}
           />
         </div>
       )}
@@ -1960,12 +1960,12 @@ export default function App() {
         }}
       >
         <header className={cn(
-          "sticky top-0 z-50 mb-8 transition-colors duration-500",
+          "sticky top-0 z-50 mb-8 border-b transition-colors duration-500",
           themeMode === 'liquid' 
             ? "bg-[#05050a] border-none" 
             : themeMode === 'beta'
-              ? "border-b border-white/5 bg-transparent backdrop-blur-sm"
-              : "border-b neu-flat border-white/5"
+              ? "bg-black/20 border-white/5 backdrop-blur-md"
+              : "border-[#c8cbd2]/50 dark:border-white/10 bg-[#e6e9f0] dark:bg-[#1e2128]"
         )}>
           <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative">
             <div className="flex items-center gap-3">

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { Maximize2, Box, User, Settings2 } from 'lucide-react';
+import { cn } from './lib/utils';
 
 export const FadingVideo = ({ src, srcs, className, style }: { src?: string; srcs?: string[]; className?: string; style?: React.CSSProperties }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -133,11 +135,71 @@ const BlurText = ({ text, className }: { text: string; className?: string }) => 
 export default function Landing() {
   return (
     <motion.div 
-      initial={{ opacity: 1 }}
+      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 1 }}
-      className="text-white min-h-screen font-body overflow-x-hidden w-full z-0 bg-transparent"
+      exit={{ opacity: 0, transition: { duration: 0.5 } }}
+      className="text-white min-h-screen font-body overflow-x-hidden w-full z-0 bg-black"
     >
+      {/* Navbar moved outside section to remain truly fixed relative to window */}
+      <motion.nav 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20, transition: { duration: 0.4 } }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="fixed top-4 left-4 right-4 lg:left-8 lg:right-8 z-50 flex items-center justify-between rounded-2xl border border-white/5"
+        style={{
+          background: 'rgba(0, 0, 0, 0.05)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+        }}
+      >
+        <div className="w-full px-6 h-16 flex items-center justify-between relative">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-blue-500 shadow-sm border border-white/5" title="Şov Ekranına Dön">
+              <Maximize2 className="w-5 h-5" />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Vision2JSON
+            </h1>
+          </div>
+          <div className="hidden lg:flex items-center gap-4">
+            <Link
+              to="/studio"
+              className="flex items-center gap-2 px-4 h-10 bg-white/5 border border-white/5 rounded-xl text-sm font-bold text-blue-500 hover:text-blue-400 transition-colors"
+            >
+              <Box className="w-4 h-4" />
+              3D Pose Studio
+            </Link>
+            <Link
+              to="/studio"
+              className="flex items-center gap-2 px-4 h-10 bg-white/5 border border-white/5 rounded-xl text-sm font-bold text-green-500 hover:text-green-400 transition-colors"
+            >
+              <User className="w-4 h-4" />
+              Influencer Studio
+            </Link>
+            <a 
+              href="https://github.com" 
+              target="_blank" 
+              className="text-sm font-medium text-white/60 hover:text-white transition-colors"
+            >
+              Dokümantasyon
+            </a>
+            
+            <div className="h-6 w-px bg-white/20 mx-2"></div>
+            
+            <Link to="/studio" className="px-5 h-10 rounded-xl flex items-center justify-center transition-all relative overflow-hidden font-bold text-sm bg-white text-black hover:bg-gray-200">
+              Uygulamaya Git
+            </Link>
+          </div>
+          
+          <div className="flex lg:hidden items-center">
+            <Link to="/studio" className="w-10 h-10 bg-white/5 border border-white/5 rounded-xl flex items-center justify-center text-white">
+               <Settings2 className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </motion.nav>
+
       {/* Section 1 - Hero */}
       <section className="relative w-full h-screen overflow-hidden flex flex-col pt-4 px-4 bg-transparent">
         <motion.div 
@@ -154,35 +216,6 @@ export default function Landing() {
             style={{ width: '120%', height: '120%' }}
           />
         </motion.div>
-        
-        {/* Navbar */}
-        <motion.nav 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20, transition: { duration: 0.4 } }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="fixed top-4 left-0 right-0 px-8 lg:px-16 z-50 flex items-center justify-between"
-        >
-          <div className="w-12 h-12 rounded-full liquid-glass flex items-center justify-center">
-            <span className="font-heading italic lowercase text-2xl relative top-0.5">a</span>
-          </div>
-          
-          <div className="hidden lg:flex liquid-glass rounded-full px-1.5 py-1.5 items-center gap-1">
-            {['Home', 'Voyages', 'Worlds', 'Innovation'].map((item) => (
-              <a key={item} href="#" className="px-3 py-2 text-sm font-medium text-white/90 font-body hover:text-white transition-colors">
-                {item}
-              </a>
-            ))}
-            <Link to="/studio" className="px-3 py-2 text-sm font-medium bg-white text-black rounded-full whitespace-nowrap flex items-center gap-1 ml-2 font-body hover:bg-gray-100 transition-colors">
-              Plan Launch
-              <svg className="w-4 h-4 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M7 17L17 7" /><path d="M7 7h10v10" />
-              </svg>
-            </Link>
-          </div>
-          
-          <div className="w-12 h-12 invisible" />
-        </motion.nav>
 
         {/* Hero Content */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center pt-16">
