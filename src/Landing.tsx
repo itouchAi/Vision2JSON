@@ -60,8 +60,9 @@ export default function Landing() {
         className="fixed top-4 left-4 right-4 lg:left-8 lg:right-8 z-50 flex items-center justify-between rounded-2xl border border-white/5"
         style={{
           background: 'rgba(255, 255, 255, 0.01)',
-          backdropFilter: 'blur(1px)',
-          WebkitBackdropFilter: 'blur(1px)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
         }}
       >
         <div className="w-full px-6 h-16 flex items-center justify-between relative">
