@@ -1967,30 +1967,28 @@ export default function App() {
               ? "bg-black/20 border-white/5 backdrop-blur-md"
               : "border-[#c8cbd2]/50 dark:border-white/10 bg-[#e6e9f0] dark:bg-[#1e2128]"
         )}>
-          <div className="max-w-7xl mx-auto px-4 md:px-6 min-h-[4rem] py-3 flex flex-col xl:flex-row items-center justify-between relative gap-4">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 min-h-[4rem] py-3 flex flex-row items-center justify-between relative gap-2 sm:gap-4">
             
             {/* Left/Top Area: Logo */}
-            <div className="flex items-center justify-between w-full xl:w-auto shrink-0">
-              <div className="flex items-center gap-3">
-                <Link to="/" className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm hover:text-blue-600 transition-all active:neu-pressed active:scale-95" title="Şov Ekranına Dön">
-                  <Maximize2 className="w-5 h-5" />
-                </Link>
-                <h1 className={cn(
-                  "text-xl font-bold tracking-tight",
-                  (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white"
-                )}>
-                  Vision2JSON
-                </h1>
-              </div>
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <Link to="/" className="w-9 h-9 sm:w-10 sm:h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm hover:text-blue-600 transition-all active:neu-pressed active:scale-95" title="Şov Ekranına Dön">
+                <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Link>
+              <h1 className={cn(
+                "text-lg sm:text-xl font-bold tracking-tight",
+                (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white"
+              )}>
+                Vision2JSON
+              </h1>
             </div>
 
             {/* Right/Bottom Area: Controls */}
-            <div className="flex flex-wrap items-center justify-center xl:justify-end gap-3 w-full xl:w-auto">
+            <div className="flex flex-row items-center justify-end gap-2 sm:gap-3 shrink-0">
               {/* Navigation Actions */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   onClick={() => setIsPoseStudioOpen(true)}
-                  className="flex items-center gap-2 px-3 lg:px-4 h-10 neu-flat rounded-xl text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-2 px-2 sm:px-3 lg:px-4 h-9 sm:h-10 neu-flat rounded-xl text-xs sm:text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
                 >
                   <Box className="w-4 h-4 shrink-0" />
                   <span className="hidden sm:inline">3D Pose</span>
@@ -2003,7 +2001,7 @@ export default function App() {
                     }
                     setIsStudioOpen(true);
                   }}
-                  className="flex items-center gap-2 px-3 lg:px-4 h-10 neu-flat rounded-xl text-sm font-bold text-green-500 hover:text-green-600 transition-colors"
+                  className="flex items-center gap-2 px-2 sm:px-3 lg:px-4 h-9 sm:h-10 neu-flat rounded-xl text-xs sm:text-sm font-bold text-green-500 hover:text-green-600 transition-colors"
                 >
                   <User className="w-4 h-4 shrink-0" />
                   <span className="hidden sm:inline">Influencer</span>
@@ -2018,7 +2016,7 @@ export default function App() {
                     }
                   }}
                   className={cn(
-                    "px-4 h-10 rounded-xl flex items-center justify-center transition-all relative overflow-hidden font-bold text-sm",
+                    "px-3 sm:px-4 h-9 sm:h-10 rounded-xl flex items-center justify-center transition-all relative overflow-hidden font-bold text-xs sm:text-sm",
                     themeMode === 'beta' ? "bg-white text-black shadow-md hover:bg-gray-100" : "neu-flat text-[#718096] hover:text-white"
                   )}
                 >
@@ -2037,7 +2035,15 @@ export default function App() {
               <div className="hidden sm:block h-6 w-px bg-[#c8cbd2] dark:bg-[#1f222a] mx-1 shrink-0"></div>
               
               {/* Toolbar Actions */}
-              <div className="fixed left-3 top-1/2 -translate-y-1/2 sm:static sm:translate-y-0 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-2 z-50 shrink-0 bg-[#e6e9f0]/40 dark:bg-black/40 sm:bg-transparent sm:dark:bg-transparent backdrop-blur-md sm:backdrop-blur-none p-2 sm:p-0 rounded-[2rem] sm:rounded-none border border-white/20 dark:border-white/10 sm:border-transparent sm:dark:border-transparent shadow-xl sm:shadow-none">
+              <div className={cn(
+                "absolute md:static left-2 md:left-auto top-[calc(100%+0.5rem)] md:top-auto flex flex-col md:flex-row items-center justify-center gap-3 md:gap-2 z-[90] shrink-0 p-2 md:p-0 rounded-full md:rounded-none transition-all",
+                "md:!border-transparent md:!bg-transparent md:!backdrop-blur-none md:!shadow-none shadow-2xl",
+                themeMode === 'liquid' 
+                  ? "bg-[#05050a]/95 border border-white/10 backdrop-blur-md" 
+                  : themeMode === 'beta'
+                    ? "bg-black/30 border border-white/10 backdrop-blur-xl"
+                    : "border border-black/10 dark:border-white/10 bg-white/80 dark:bg-[#1e2128]/80 backdrop-blur-xl"
+              )}>
                 {/* History Toggle */}
                 <div className="relative">
                 <button
@@ -2054,7 +2060,7 @@ export default function App() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute left-14 sm:left-auto sm:right-0 top-0 sm:mt-3 w-72 neu-flat rounded-3xl overflow-hidden z-[60] border border-white/10 p-4 shadow-2xl"
+                      className="absolute left-14 md:left-auto md:right-0 top-0 md:mt-3 w-72 neu-flat rounded-3xl overflow-hidden z-[60] border border-white/10 p-4 shadow-2xl"
                     >
                       <div className="flex items-center justify-between mb-4 px-2">
                         <h3 className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-widest">{t.historyTitle}</h3>
@@ -2096,56 +2102,53 @@ export default function App() {
               </div>
 
               {/* Language Toggle */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setLanguage('TR')}
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all",
-                    language === 'TR' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
-                  )}
-                >
-                  TR
-                </button>
-                <button
-                  onClick={() => setLanguage('ENG')}
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all",
-                    language === 'ENG' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
-                  )}
-                >
-                  ENG
-                </button>
-              </div>
+              <button
+                onClick={() => setLanguage('TR')}
+                className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                  language === 'TR' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
+                )}
+              >
+                TR
+              </button>
+              <button
+                onClick={() => setLanguage('ENG')}
+                className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                  language === 'ENG' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
+                )}
+              >
+                ENG
+              </button>
 
               {/* Theme & Color Toggle */}
-              <div className="flex items-center gap-2">
-                {/* Liquid Theme Toggle */}
-                <button
-                  onClick={toggleThemeMode}
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-all relative overflow-hidden",
-                    themeMode === 'liquid' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
-                  )}
-                  title={themeMode === 'liquid' ? "Klasik Temaya Dön" : "Likit Temaya Geç"}
-                >
-                  <Sparkles className="w-4 h-4" />
-                </button>
+              {/* Liquid Theme Toggle */}
+              <button
+                onClick={toggleThemeMode}
+                className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center transition-all relative overflow-hidden",
+                  themeMode === 'liquid' ? "neu-pressed text-blue-500" : "neu-flat text-[#718096] hover:text-blue-500"
+                )}
+                title={themeMode === 'liquid' ? "Klasik Temaya Dön" : "Likit Temaya Geç"}
+              >
+                <Sparkles className="w-4 h-4" />
+              </button>
 
-                <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all relative overflow-hidden"
-                >
-                  {/* Corner lines for "shirt" style */}
-                  <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-current opacity-50 rounded-tl-sm"></div>
-                  <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-current opacity-50 rounded-tr-sm"></div>
-                  <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-current opacity-50 rounded-bl-sm"></div>
-                  <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-current opacity-50 rounded-br-sm"></div>
-                  
-                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                </button>
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all relative overflow-hidden"
+              >
+                {/* Corner lines for "shirt" style */}
+                <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-current opacity-50 rounded-tl-sm"></div>
+                <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-current opacity-50 rounded-tr-sm"></div>
+                <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-current opacity-50 rounded-bl-sm"></div>
+                <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-current opacity-50 rounded-br-sm"></div>
+                
+                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
 
-                {/* Color Picker Toggle */}
-                <div className="relative">
+              {/* Color Picker Toggle */}
+              <div className="relative">
                   <button
                     onClick={() => setShowColorPicker(!showColorPicker)}
                     className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all relative overflow-hidden"
@@ -2163,7 +2166,7 @@ export default function App() {
                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                        className="absolute left-14 sm:left-auto sm:right-0 top-0 sm:top-auto sm:mt-4 p-4 neu-flat rounded-2xl z-[100] flex flex-col gap-4 min-w-[200px]"
+                        className="absolute left-14 md:left-auto md:right-0 top-0 md:top-auto md:mt-4 p-4 neu-flat rounded-2xl z-[100] flex flex-col gap-4 min-w-[200px]"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-[#4a5568]">Arka Plan Rengi</span>
@@ -2192,7 +2195,6 @@ export default function App() {
                     )}
                   </AnimatePresenceComponent>
                 </div>
-              </div>
             </div>
           </div>
         </div>
