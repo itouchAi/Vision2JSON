@@ -2418,15 +2418,6 @@ export default function App() {
                     className="absolute inset-0 w-full h-full bg-transparent resize-none focus:outline-none text-sm leading-relaxed font-sans p-4 text-[#2d3748] dark:text-gray-300 custom-scrollbar"
                     style={{ color: 'inherit', background: 'transparent' }}
                   />
-                  {/* Magic Wand Button */}
-                  <button
-                    onClick={enhanceMainPrompt}
-                    disabled={isEnhancingMainPrompt || !userPrompt.trim()}
-                    className="absolute top-4 right-4 p-2 neu-flat text-blue-500 rounded-xl hover:text-blue-600 active:neu-pressed transition-all disabled:opacity-50 z-10"
-                    title="Promptu Yapay Zeka ile Geliştir"
-                  >
-                    {isEnhancingMainPrompt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                  </button>
                 </div>
               ) : (
                 <>
@@ -2538,10 +2529,19 @@ export default function App() {
                   <X className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={handleBottomSubmit}
-                  className="px-3 py-2 neu-flat text-blue-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs"
+                  onClick={enhanceMainPrompt}
+                  disabled={isEnhancingMainPrompt || !userPrompt.trim()}
+                  className="px-3 py-2 neu-flat text-blue-500 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center disabled:opacity-50"
+                  title="Promptu Yapay Zeka ile Geliştir"
                 >
-                  Gönder
+                  {isEnhancingMainPrompt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={handleBottomSubmit}
+                  className="px-3 py-2 neu-flat text-blue-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center"
+                  title="Gönder"
+                >
+                  <ArrowUp className="w-4 h-4" />
                 </button>
                 <button
                   onClick={upgradeToHyperRealistic}
@@ -2561,10 +2561,10 @@ export default function App() {
                     }
                   }}
                   disabled={isGeneratingImage}
-                  className="px-3 py-2 neu-flat text-green-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center gap-1 disabled:opacity-50"
+                  className="px-3 py-2 neu-flat text-green-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center disabled:opacity-50"
+                  title={isGeneratingImage ? "Üretiliyor..." : "Oluştur"}
                 >
-                  {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                  {isGeneratingImage ? 'Üretiliyor...' : 'Oluştur'}
+                  {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
                 </button>
               </div>
             </div>
