@@ -1960,59 +1960,86 @@ export default function App() {
         }}
       >
         <header className={cn(
-          "sticky top-0 z-50 mb-8 border-b transition-colors duration-500",
+          "sticky top-0 z-50 mb-4 sm:mb-8 border-b transition-colors duration-500",
           themeMode === 'liquid' 
             ? "bg-[#05050a] border-none" 
             : themeMode === 'beta'
               ? "bg-black/20 border-white/5 backdrop-blur-md"
               : "border-[#c8cbd2]/50 dark:border-white/10 bg-[#e6e9f0] dark:bg-[#1e2128]"
         )}>
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative">
-            <div className="flex items-center gap-3">
-              <Link to="/" className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm hover:text-blue-600 transition-all active:neu-pressed active:scale-95" title="Şov Ekranına Dön">
-                <Maximize2 className="w-5 h-5" />
-              </Link>
-              <h1 className={cn(
-                "text-xl font-bold tracking-tight",
-                (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white"
-              )}>
-                Vision2JSON
-              </h1>
+          <div className="max-w-7xl mx-auto px-4 md:px-6 min-h-[4rem] py-3 flex flex-col xl:flex-row items-center justify-between relative gap-4">
+            
+            {/* Left/Top Area: Logo */}
+            <div className="flex items-center justify-between w-full xl:w-auto shrink-0">
+              <div className="flex items-center gap-3">
+                <Link to="/" className="w-10 h-10 neu-flat rounded-xl flex items-center justify-center text-blue-500 shadow-sm hover:text-blue-600 transition-all active:neu-pressed active:scale-95" title="Şov Ekranına Dön">
+                  <Maximize2 className="w-5 h-5" />
+                </Link>
+                <h1 className={cn(
+                  "text-xl font-bold tracking-tight",
+                  (themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748] dark:text-white"
+                )}>
+                  Vision2JSON
+                </h1>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsPoseStudioOpen(true)}
-              className="flex items-center gap-2 px-4 h-10 neu-flat rounded-xl text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
-            >
-              <Box className="w-4 h-4" />
-              3D Pose Studio
-            </button>
-            <button
-              onClick={() => {
-                if (!result) {
-                  addToast(language === 'TR' ? 'Lütfen önce bir görsel yükleyip analiz edin.' : 'Please upload and analyze an image first.', 'info');
-                  return;
-                }
-                setIsStudioOpen(true);
-              }}
-              className="flex items-center gap-2 px-4 h-10 neu-flat rounded-xl text-sm font-bold text-green-500 hover:text-green-600 transition-colors"
-            >
-              <User className="w-4 h-4" />
-              Influencer Studio
-            </button>
-            <a 
-              href="https://github.com" 
-              target="_blank" 
-              className="text-sm font-medium text-[#718096] hover:text-blue-500 transition-colors"
-            >
-              {t.docs}
-            </a>
-            
-            <div className="h-6 w-px bg-[#c8cbd2] dark:bg-[#1f222a] mx-2"></div>
-            
-            <div className="flex items-center gap-3">
-              {/* History Toggle */}
-              <div className="relative">
+
+            {/* Right/Bottom Area: Controls */}
+            <div className="flex flex-wrap items-center justify-center xl:justify-end gap-3 w-full xl:w-auto">
+              {/* Navigation Actions */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsPoseStudioOpen(true)}
+                  className="flex items-center gap-2 px-3 lg:px-4 h-10 neu-flat rounded-xl text-sm font-bold text-blue-500 hover:text-blue-600 transition-colors"
+                >
+                  <Box className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">3D Pose</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (!result) {
+                      addToast(language === 'TR' ? 'Lütfen önce bir görsel yükleyip analiz edin.' : 'Please upload and analyze an image first.', 'info');
+                      return;
+                    }
+                    setIsStudioOpen(true);
+                  }}
+                  className="flex items-center gap-2 px-3 lg:px-4 h-10 neu-flat rounded-xl text-sm font-bold text-green-500 hover:text-green-600 transition-colors"
+                >
+                  <User className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Influencer</span>
+                </button>
+                <button
+                  onClick={() => {
+                    // @ts-ignore - View Transitions API
+                    if (document.startViewTransition) {
+                      document.startViewTransition(() => setThemeMode(themeMode === 'beta' ? 'classic' : 'beta'));
+                    } else {
+                      setThemeMode(themeMode === 'beta' ? 'classic' : 'beta');
+                    }
+                  }}
+                  className={cn(
+                    "px-4 h-10 rounded-xl flex items-center justify-center transition-all relative overflow-hidden font-bold text-sm",
+                    themeMode === 'beta' ? "bg-white text-black shadow-md hover:bg-gray-100" : "neu-flat text-[#718096] hover:text-white"
+                  )}
+                >
+                  Beta Geçiş
+                </button>
+                <a 
+                  href="https://github.com" 
+                  target="_blank" 
+                  className="hidden md:block text-sm font-medium text-[#718096] hover:text-blue-500 transition-colors px-2"
+                >
+                  {t.docs}
+                </a>
+              </div>
+              
+              {/* Divider visible on larger than mobile */}
+              <div className="hidden sm:block h-6 w-px bg-[#c8cbd2] dark:bg-[#1f222a] mx-1 shrink-0"></div>
+              
+              {/* Toolbar Actions */}
+              <div className="fixed left-3 top-1/2 -translate-y-1/2 sm:static sm:translate-y-0 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-2 z-50 shrink-0 bg-[#e6e9f0]/40 dark:bg-black/40 sm:bg-transparent sm:dark:bg-transparent backdrop-blur-md sm:backdrop-blur-none p-2 sm:p-0 rounded-[2rem] sm:rounded-none border border-white/20 dark:border-white/10 sm:border-transparent sm:dark:border-transparent shadow-xl sm:shadow-none">
+                {/* History Toggle */}
+                <div className="relative">
                 <button
                   onClick={() => setIsHistoryOpen(!isHistoryOpen)}
                   className="w-10 h-10 rounded-full neu-flat flex items-center justify-center text-[#718096] hover:text-blue-500 transition-all"
@@ -2027,7 +2054,7 @@ export default function App() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-3 w-72 neu-flat rounded-3xl overflow-hidden z-[60] border border-white/10 p-4 shadow-2xl"
+                      className="absolute left-14 sm:left-auto sm:right-0 top-0 sm:mt-3 w-72 neu-flat rounded-3xl overflow-hidden z-[60] border border-white/10 p-4 shadow-2xl"
                     >
                       <div className="flex items-center justify-between mb-4 px-2">
                         <h3 className="text-[10px] font-bold text-[#718096] dark:text-gray-500 uppercase tracking-widest">{t.historyTitle}</h3>
@@ -2094,23 +2121,6 @@ export default function App() {
               <div className="flex items-center gap-2">
                 {/* Liquid Theme Toggle */}
                 <button
-                  onClick={() => {
-                    // @ts-ignore - View Transitions API
-                    if (document.startViewTransition) {
-                      document.startViewTransition(() => setThemeMode(themeMode === 'beta' ? 'classic' : 'beta'));
-                    } else {
-                      setThemeMode(themeMode === 'beta' ? 'classic' : 'beta');
-                    }
-                  }}
-                  className={cn(
-                    "px-4 h-10 rounded-xl flex items-center justify-center transition-all relative overflow-hidden font-bold text-sm",
-                    themeMode === 'beta' ? "bg-white text-black hover:bg-gray-100" : "neu-flat text-[#718096] hover:text-white"
-                  )}
-                >
-                  Beta Geçiş
-                </button>
-
-                <button
                   onClick={toggleThemeMode}
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center transition-all relative overflow-hidden",
@@ -2153,7 +2163,7 @@ export default function App() {
                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                        className="absolute right-0 mt-4 p-4 neu-flat rounded-2xl z-[100] flex flex-col gap-4 min-w-[200px]"
+                        className="absolute left-14 sm:left-auto sm:right-0 top-0 sm:top-auto sm:mt-4 p-4 neu-flat rounded-2xl z-[100] flex flex-col gap-4 min-w-[200px]"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-[#4a5568]">Arka Plan Rengi</span>
@@ -2212,7 +2222,7 @@ export default function App() {
               {t.subtitle}
             </p>
           </MotionDiv>
-          <div className="lg:col-span-2"></div>
+          <div className="lg:col-span-2 hidden lg:block"></div>
           <MotionDiv variants={revealItemRight} className="lg:col-span-5">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
@@ -2493,7 +2503,7 @@ export default function App() {
               )}
 
               {/* Bottom Input Area */}
-              <div className="p-4 border-t border-[#c8cbd2]/20 dark:border-gray-800 flex gap-2 flex-shrink-0 bg-white/10">
+              <div className="p-4 border-t border-[#c8cbd2]/20 dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:gap-2 flex-shrink-0 bg-white/10">
                 <div className="flex-1 relative flex items-center">
                   <input
                     type="text"
@@ -2513,59 +2523,61 @@ export default function App() {
                     {isBottomListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                   </button>
                 </div>
-                <button
-                  onClick={() => {
-                    setUserPrompt("");
-                    setBottomInput("");
-                    setSelectedSuggestions({});
-                    if (initialResult) {
-                      setResult(initialResult);
-                      setJsonText(JSON.stringify(initialResult, null, 2));
-                    }
-                  }}
-                  className="px-3 py-2 neu-flat text-red-500 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center"
-                  title="Sıfırla"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={enhanceMainPrompt}
-                  disabled={isEnhancingMainPrompt || !userPrompt.trim()}
-                  className="px-3 py-2 neu-flat text-blue-500 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center disabled:opacity-50"
-                  title="Promptu Yapay Zeka ile Geliştir"
-                >
-                  {isEnhancingMainPrompt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={handleBottomSubmit}
-                  className="px-3 py-2 neu-flat text-blue-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center"
-                  title="Gönder"
-                >
-                  <ArrowUp className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={upgradeToHyperRealistic}
-                  disabled={isUpgrading || isGeneratingImage || isAnalyzing || !result}
-                  className="px-3 py-2 neu-flat text-purple-600 font-bold rounded-xl hover:neu-pressed transition-all flex items-center justify-center disabled:opacity-50"
-                  title={t.upgrade}
-                >
-                  {isUpgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => {
-                    if (activeTab === 'prompt' && !userPrompt.trim() && !bottomInput.trim()) {
-                      setShowEmptyPromptWarning(true);
-                    } else {
-                      const promptToUse = activeTab === 'prompt' ? (userPrompt + " " + bottomInput) : jsonText;
-                      handleGenerateFromBottom(promptToUse);
-                    }
-                  }}
-                  disabled={isGeneratingImage}
-                  className="px-3 py-2 neu-flat text-green-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center disabled:opacity-50"
-                  title={isGeneratingImage ? "Üretiliyor..." : "Oluştur"}
-                >
-                  {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                </button>
+                <div className="flex items-center gap-2 justify-end">
+                  <button
+                    onClick={() => {
+                      setUserPrompt("");
+                      setBottomInput("");
+                      setSelectedSuggestions({});
+                      if (initialResult) {
+                        setResult(initialResult);
+                        setJsonText(JSON.stringify(initialResult, null, 2));
+                      }
+                    }}
+                    className="px-3 py-2 h-[36px] neu-flat text-red-500 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center shrink-0"
+                    title="Sıfırla"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={enhanceMainPrompt}
+                    disabled={isEnhancingMainPrompt || !userPrompt.trim()}
+                    className="px-3 py-2 h-[36px] neu-flat text-blue-500 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center disabled:opacity-50 shrink-0"
+                    title="Promptu Yapay Zeka ile Geliştir"
+                  >
+                    {isEnhancingMainPrompt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={handleBottomSubmit}
+                    className="px-3 py-2 h-[36px] neu-flat text-blue-600 font-bold rounded-xl hover:neu-pressed transition-all text-xs flex items-center justify-center shrink-0"
+                    title="Gönder"
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={upgradeToHyperRealistic}
+                    disabled={isUpgrading || isGeneratingImage || isAnalyzing || !result}
+                    className="px-3 py-2 h-[36px] neu-flat text-purple-600 font-bold rounded-xl hover:neu-pressed transition-all flex items-center justify-center disabled:opacity-50 shrink-0"
+                    title={t.upgrade}
+                  >
+                    {isUpgrading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (activeTab === 'prompt' && !userPrompt.trim() && !bottomInput.trim()) {
+                        setShowEmptyPromptWarning(true);
+                      } else {
+                        const promptToUse = activeTab === 'prompt' ? (userPrompt + " " + bottomInput) : jsonText;
+                        handleGenerateFromBottom(promptToUse);
+                      }
+                    }}
+                    disabled={isGeneratingImage}
+                    className="px-3 py-2 h-[36px] neu-flat text-green-600 font-bold rounded-xl hover:neu-pressed transition-all flex items-center justify-center disabled:opacity-50 shrink-0"
+                    title={isGeneratingImage ? "Üretiliyor..." : "Oluştur"}
+                  >
+                    {isGeneratingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
           </MotionDiv>

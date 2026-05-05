@@ -511,10 +511,10 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                 className="absolute inset-0 flex flex-col items-center justify-center p-8 space-y-8 overflow-y-auto w-full h-full"
               >
                 <h3 className="text-2xl font-bold">Model Cinsiyetini Seçin</h3>
-                <div className="flex gap-8">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
                   <button 
                     onClick={() => { setGender('female'); setStep('pose'); }}
-                    className="w-48 h-64 neu-flat rounded-3xl flex flex-col items-center justify-center gap-4 hover:neu-pressed transition-all group"
+                    className="w-full sm:w-48 h-48 sm:h-64 neu-flat rounded-3xl flex flex-col items-center justify-center gap-4 hover:neu-pressed transition-all group"
                   >
                     <div className="w-24 h-24 rounded-full bg-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <User className="w-12 h-12 text-pink-500" />
@@ -523,7 +523,7 @@ export const PoseStudioModal = ({ isOpen, onClose, onGenerate, image, onImageUpl
                   </button>
                   <button 
                     onClick={() => { setGender('male'); setStep('pose'); }}
-                    className="w-48 h-64 neu-flat rounded-3xl flex flex-col items-center justify-center gap-4 hover:neu-pressed transition-all group"
+                    className="w-full sm:w-48 h-48 sm:h-64 neu-flat rounded-3xl flex flex-col items-center justify-center gap-4 hover:neu-pressed transition-all group"
                   >
                     <div className="w-24 h-24 rounded-full bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <User className="w-12 h-12 text-blue-500" />
