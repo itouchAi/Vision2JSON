@@ -46,10 +46,10 @@ const BlurText = ({ text, className }: { text: string; className?: string }) => 
 export default function Landing() {
   return (
     <motion.div 
-      initial={{ x: -100, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 100, opacity: 0, transition: { duration: 0.5 } }}
-      className="text-white min-h-screen font-body overflow-x-hidden w-full z-0 bg-black"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.8, ease: "easeOut", delay: 0.2 } }}
+      exit={{ opacity: 0, transition: { duration: 0.6, ease: "easeInOut" } }}
+      className="text-white min-h-screen font-body overflow-x-hidden w-full z-0 bg-transparent"
     >
       {/* Navbar moved outside section to remain truly fixed relative to window */}
       <motion.nav 

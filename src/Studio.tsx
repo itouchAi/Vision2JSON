@@ -1932,13 +1932,13 @@ export default function App() {
       animate="show"
       exit="exit"
       variants={{
-        hidden: { x: 100, opacity: 0 },
-        show: { x: 0, opacity: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 } },
-        exit: { x: -100, opacity: 0, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.1 } },
+        exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut", staggerChildren: 0.05, staggerDirection: -1, when: "afterChildren" } }
       }}
       className={cn(
         "min-h-screen transition-colors duration-500 flex flex-col w-full z-10",
-        themeMode === 'liquid' ? "bg-[#05050a]" : "bg-[#e6e9f0] dark:bg-[#1e2128]",
+        themeMode === 'liquid' ? "bg-[#05050a]" : themeMode === 'beta' ? "bg-transparent" : "bg-[#e6e9f0] dark:bg-[#1e2128]",
         (isDarkMode || themeMode === 'liquid' || themeMode === 'beta') ? "text-white" : "text-[#2d3748]"
       )}
     >
