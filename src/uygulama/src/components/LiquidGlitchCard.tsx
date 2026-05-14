@@ -18,7 +18,7 @@ export function LiquidGlitchCard({ bottomImage = '/color.png' }: { bottomImage?:
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
-    const loader = new THREE.TextureLoader();
+    const loader = new THREE.TextureLoader().setCrossOrigin('anonymous');
     // Depth image as the base, Color image as the revealed image
     const tex1 = loader.load('/depth.png', (t) => {
        material.uniforms.uImageResolution.value.set(t.image.width, t.image.height);

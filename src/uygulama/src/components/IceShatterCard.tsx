@@ -137,6 +137,7 @@ export function IceShatterCard({ bottomImage = '/color.png' }: { bottomImage?: s
     };
 
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.src = topImage;
     img.onload = () => {
       imageRef.current = img;

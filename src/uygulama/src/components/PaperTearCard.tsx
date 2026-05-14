@@ -112,6 +112,7 @@ export function PaperTearCard({ bottomImage = '/color.png' }: { bottomImage?: st
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.src = topImage;
     img.onload = () => {
       imageRef.current = img;
