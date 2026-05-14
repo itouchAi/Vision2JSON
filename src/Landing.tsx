@@ -171,12 +171,12 @@ export default function Landing() {
                   <path d="M7 17L17 7" /><path d="M7 7h10v10" />
                 </svg>
               </Link>
-              <button className="flex items-center gap-2 text-sm text-white/90 font-medium hover:text-white transition-colors group px-3 py-2">
+              <Link to="/uygulama" className="flex items-center gap-2 text-sm text-white/90 font-medium hover:text-white transition-colors group px-3 py-2">
                 View Liftoff
                 <svg className="w-4 h-4 fill-white group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                   <polygon points="6 4 20 12 6 20 6 4" />
                 </svg>
-              </button>
+              </Link>
             </motion.div>
           </motion.div>
 

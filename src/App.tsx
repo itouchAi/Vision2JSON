@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'motion/react';
 import Landing from './Landing';
 import Studio from './Studio';
+import UygulamaApp from './uygulama/src/App';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -13,6 +14,7 @@ function AnimatedRoutes() {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<div style={{ gridArea: '1 / 1 / 2 / 2', zIndex: 20, position: 'relative', height: '100%' }}><Landing /></div>} />
           <Route path="/studio" element={<div style={{ gridArea: '1 / 1 / 2 / 2', zIndex: 10, position: 'relative', height: '100%' }}><Studio /></div>} />
+          <Route path="/uygulama" element={<div className="uygulama-app" style={{ gridArea: '1 / 1 / 2 / 2', zIndex: 10, position: 'relative', height: '100%' }}><UygulamaApp /></div>} />
         </Routes>
       </AnimatePresence>
     </div>
