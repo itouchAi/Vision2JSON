@@ -1,5 +1,3 @@
-import depthImg from '@/src/assets/depth.png';
-import colorImg from '@/src/assets/color.png';
 import { useRef, useEffect, useState } from 'react';
 
 interface Point { x: number; y: number }
@@ -38,7 +36,7 @@ function pointInPolygon(point: Point, vs: Point[]) {
     return inside;
 }
 
-export function IceShatterCard({ bottomImage = colorImg }: { bottomImage?: string }) {
+export function IceShatterCard({ bottomImage = "/color.png" }: { bottomImage?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,7 +51,7 @@ export function IceShatterCard({ bottomImage = colorImg }: { bottomImage?: strin
   const animationRef = useRef<number | null>(null);
   const polyIdCounter = useRef(1);
 
-  const topImage = depthImg;
+  const topImage = "/depth.png";
   const MAX_LEVEL = 2; // Level 0 -> 1 -> 2 (falls)
   const HIT_RADIUS = 100;
 

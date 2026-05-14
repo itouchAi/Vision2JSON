@@ -1,5 +1,3 @@
-import depthImg from '@/src/assets/depth.png';
-import colorImg from '@/src/assets/color.png';
 import { useState, useRef } from 'react';
 import { BrushRevealCard } from './BrushRevealCard';
 import { LiquidGlitchCard } from './LiquidGlitchCard';
@@ -21,7 +19,7 @@ const EFFECTS = [
   XRayRevealCard
 ];
 
-export function ChaosCard({ bottomImage = colorImg }: { bottomImage?: string }) {
+export function ChaosCard({ bottomImage = "/color.png" }: { bottomImage?: string }) {
   const [effectIndex, setEffectIndex] = useState(0); 
   const [fade, setFade] = useState(false);
   const clickCountRef = useRef(0);
