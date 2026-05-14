@@ -1,7 +1,9 @@
+import colorImg from '@/src/assets/color.png';
+import depthImg from '@/src/assets/depth.png';
 import { useRef, useEffect, useState } from 'react';
 import { motion, useSpring } from 'motion/react';
 
-export function BrushRevealCard({ bottomImage = "/color.png" }: { bottomImage?: string }) {
+export function BrushRevealCard({ bottomImage = colorImg }: { bottomImage?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -14,7 +16,7 @@ export function BrushRevealCard({ bottomImage = "/color.png" }: { bottomImage?: 
   const cursorX = useSpring(-200, { stiffness: 800, damping: 40 });
   const cursorY = useSpring(-200, { stiffness: 800, damping: 40 });
 
-  const topImage = "/depth.png";
+  const topImage = depthImg;
 
   const drawImageCover = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, cw: number, ch: number) => {
     const ir = img.width / img.height;
