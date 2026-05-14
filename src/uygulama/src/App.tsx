@@ -1,3 +1,8 @@
+import arkaplanVideo from '@/src/assets/arkaplan.mp4';
+import depthImg from '@/src/assets/depth.png';
+import colorImg from '@/src/assets/color.png';
+import arkaplanImg from '@/src/assets/arkaplan.jpg';
+import karakterImg from '@/src/assets/karakter.png';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { useRef, useState } from 'react';
 import { Menu } from 'lucide-react';
@@ -19,7 +24,7 @@ import { ChaosCard } from './components/ChaosCard';
 
 export default function App() {
   const [isEngineInitialized, setIsEngineInitialized] = useState(false);
-  const [revealImageSrc, setRevealImageSrc] = useState('/color.png');
+  const [revealImageSrc, setRevealImageSrc] = useState(colorImg);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -86,7 +91,7 @@ export default function App() {
                className="w-full h-full object-cover opacity-20 mix-blend-luminosity grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000"
              >
                {/* Local video sourced from public folder */}
-               <source src="/arkaplan.mp4" type="video/mp4" />
+               <source src={arkaplanVideo} type="video/mp4" />
              </video>
           </motion.div>
           
@@ -165,7 +170,7 @@ export default function App() {
           <div className="bento-card md:col-span-4 p-0 overflow-hidden relative aspect-[3/4] md:aspect-[4/5] bg-zinc-900 border border-zinc-800">
              <DepthMapCard 
                imageSrc={revealImageSrc}
-               depthMapSrc="/depth.png"
+               depthMapSrc={depthImg}
                className="w-full h-full rounded-[30px] block"
              />
              
@@ -185,8 +190,8 @@ export default function App() {
           <div className="bento-card md:col-span-4 p-0 overflow-hidden relative aspect-[3/4] md:aspect-[4/5]">
              {/* 2.5D Parallax Demo Box */}
              <ParallaxCard 
-               bgSrc="/arkaplan.jpg"
-               fgSrc="/karakter.png"
+               bgSrc={arkaplanImg}
+               fgSrc={karakterImg}
                className="absolute inset-0 w-full h-full rounded-[30px] block"
              />
              
@@ -228,7 +233,7 @@ export default function App() {
             {/* Image Container */}
             <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border bg-zinc-900 pointer-events-auto">
               <XRayRevealCard 
-                topImage="/depth.png" 
+                topImage={depthImg} 
                 bottomImage={revealImageSrc} 
               />
             </div>

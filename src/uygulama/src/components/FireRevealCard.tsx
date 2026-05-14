@@ -1,3 +1,5 @@
+import depthImg from '@/src/assets/depth.png';
+import colorImg from '@/src/assets/color.png';
 import { useRef, useEffect, useState } from 'react';
 
 interface Emitter {
@@ -20,7 +22,7 @@ interface Particle {
   size: number;
 }
 
-export function FireRevealCard({ bottomImage = '/color.png' }: { bottomImage?: string }) {
+export function FireRevealCard({ bottomImage = colorImg }: { bottomImage?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement>(null);
   const fireCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,7 +34,7 @@ export function FireRevealCard({ bottomImage = '/color.png' }: { bottomImage?: s
   const particlesRef = useRef<Particle[]>([]);
   const animationRef = useRef<number | null>(null);
 
-  const topImage = '/depth.png';
+  const topImage = depthImg;
 
   const drawImageCover = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, cw: number, ch: number) => {
     const ir = img.width / img.height;
@@ -88,7 +90,7 @@ export function FireRevealCard({ bottomImage = '/color.png' }: { bottomImage?: s
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    
     img.src = topImage;
     img.onload = () => {
       imageRef.current = img;
