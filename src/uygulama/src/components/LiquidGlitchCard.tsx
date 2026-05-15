@@ -20,10 +20,8 @@ export function LiquidGlitchCard({ bottomImage = "/color.png" }: { bottomImage?:
 
     const loader = new THREE.TextureLoader();
     // Depth image as the base, Color image as the revealed image
-    const tex1 = loader.load("/depth.png", (t) => {
-       material.uniforms.uImageResolution.value.set(t.image.width, t.image.height);
-    });
-    const tex2 = loader.load(bottomImage);
+    const tex1 = loader.load("/depth.png");
+    const tex2 = loader.load(bottomImage, (t) => { material.uniforms.uImageResolution.value.set(t.image.width, t.image.height); });
 
     const material = new THREE.ShaderMaterial({
       uniforms: {

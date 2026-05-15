@@ -20,6 +20,7 @@ import { ChaosCard } from './components/ChaosCard';
 export default function App() {
   const [isEngineInitialized, setIsEngineInitialized] = useState(false);
   const [revealImageSrc, setRevealImageSrc] = useState("/color.png");
+  const [imageAspect, setImageAspect] = useState<number | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +29,12 @@ export default function App() {
     if (file) {
       const url = URL.createObjectURL(file);
       setRevealImageSrc(url);
+      
+      const img = new Image();
+      img.onload = () => {
+        setImageAspect(img.width / img.height);
+      };
+      img.src = url;
     }
   };
   const { scrollYProgress } = useScroll({
@@ -162,7 +169,7 @@ export default function App() {
           </div>
 
           {/* AI Depth Map Parallax Card */}
-          <div className="bento-card md:col-span-4 p-0 overflow-hidden relative aspect-[3/4] md:aspect-[4/5] bg-zinc-900 border border-zinc-800">
+          <div className="bento-card md:col-span-4 p-0 overflow-hidden relative bg-zinc-900 border border-zinc-800" style={{ aspectRatio: imageAspect || (4/5) }}>
              <DepthMapCard 
                imageSrc={revealImageSrc}
                depthMapSrc="/depth.png"
@@ -182,7 +189,7 @@ export default function App() {
           </div>
 
           {/* Parallax Card Space */}
-          <div className="bento-card md:col-span-4 p-0 overflow-hidden relative aspect-[3/4] md:aspect-[4/5]">
+          <div className="bento-card md:col-span-4 p-0 overflow-hidden relative" style={{ aspectRatio: imageAspect || (4/5) }}>
              {/* 2.5D Parallax Demo Box */}
              <ParallaxCard 
                bgSrc="/arkaplan.jpg"
@@ -210,7 +217,7 @@ export default function App() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
           
           {/* Slot 1: X-Ray Reveal (Scanner) */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header - Fixed height to guarantee spacing */}
             <div className="h-8 flex justify-end items-center px-3 flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -238,7 +245,7 @@ export default function App() {
           </div>
 
           {/* Slot 2: Watercolor / Eraser Reveal */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_02</span>
@@ -258,7 +265,7 @@ export default function App() {
           </div>
 
           {/* Slot 3: WebGL Liquid Glitch */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_03</span>
@@ -285,7 +292,7 @@ export default function App() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
           
           {/* Slot 4: Paint Drip / Ink Splatter Reveal */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_04</span>
@@ -305,7 +312,7 @@ export default function App() {
           </div>
 
           {/* Slot 5: Paper Tear Reveal */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_05</span>
@@ -325,7 +332,7 @@ export default function App() {
           </div>
 
           {/* Slot 6: Optical Refraction Lens */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_06</span>
@@ -352,7 +359,7 @@ export default function App() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
           
           {/* Slot 7: Fire Reveal */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_07</span>
@@ -372,7 +379,7 @@ export default function App() {
           </div>
 
           {/* Slot 8: Ice Shatter */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_08</span>
@@ -392,7 +399,7 @@ export default function App() {
           </div>
 
           {/* Slot 9: Chaos Mode */}
-          <div className="bento-card p-3 flex flex-col relative h-[450px]">
+          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_09</span>
