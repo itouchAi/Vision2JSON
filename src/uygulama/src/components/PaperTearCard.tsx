@@ -1,9 +1,7 @@
-import colorImg from '@/src/assets/color.png';
-import depthImg from '@/src/assets/depth.png';
 import { useRef, useEffect, useState } from 'react';
 import { motion, useSpring } from 'motion/react';
 
-export function PaperTearCard({ bottomImage = colorImg }: { bottomImage?: string }) {
+export function PaperTearCard({ bottomImage = "/color.png" }: { bottomImage?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const topCanvasRef = useRef<HTMLCanvasElement>(null);
   const fiberCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,7 +16,7 @@ export function PaperTearCard({ bottomImage = colorImg }: { bottomImage?: string
   const cursorX = useSpring(-200, { stiffness: 800, damping: 40 });
   const cursorY = useSpring(-200, { stiffness: 800, damping: 40 });
 
-  const topImage = depthImg;
+  const topImage = "/depth.png";
 
   // 1. Generate irregular torn-paper brushes
   const generateBrushes = () => {
@@ -114,6 +112,7 @@ export function PaperTearCard({ bottomImage = colorImg }: { bottomImage?: string
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     
     img.src = topImage;
     img.onload = () => {

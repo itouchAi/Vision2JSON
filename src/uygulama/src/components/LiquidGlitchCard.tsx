@@ -1,9 +1,7 @@
-import colorImg from '@/src/assets/color.png';
-import depthImg from '@/src/assets/depth.png';
 import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 
-export function LiquidGlitchCard({ bottomImage = colorImg }: { bottomImage?: string }) {
+export function LiquidGlitchCard({ bottomImage = "/color.png" }: { bottomImage?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -20,9 +18,9 @@ export function LiquidGlitchCard({ bottomImage = colorImg }: { bottomImage?: str
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
-    const loader = new THREE.TextureLoader();
+    const loader = new THREE.TextureLoader().setCrossOrigin('anonymous');
     // Depth image as the base, Color image as the revealed image
-    const tex1 = loader.load(depthImg, (t) => {
+    const tex1 = loader.load("/depth.png", (t) => {
        material.uniforms.uImageResolution.value.set(t.image.width, t.image.height);
     });
     const tex2 = loader.load(bottomImage);

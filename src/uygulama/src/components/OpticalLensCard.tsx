@@ -1,9 +1,7 @@
-import colorImg from '@/src/assets/color.png';
-import depthImg from '@/src/assets/depth.png';
 import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 
-export function OpticalLensCard({ bottomImage = colorImg }: { bottomImage?: string }) {
+export function OpticalLensCard({ bottomImage = "/color.png" }: { bottomImage?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -20,8 +18,8 @@ export function OpticalLensCard({ bottomImage = colorImg }: { bottomImage?: stri
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // High-res for crisp glass
     container.appendChild(renderer.domElement);
 
-    const loader = new THREE.TextureLoader();
-    const texBase = loader.load(depthImg, (t) => {
+    const loader = new THREE.TextureLoader().setCrossOrigin('anonymous');
+    const texBase = loader.load("/depth.png", (t) => {
         if (t.image && t.image.width) {
             material.uniforms.uImageResolution.value.set(t.image.width, t.image.height);
         }

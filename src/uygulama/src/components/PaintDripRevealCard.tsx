@@ -1,5 +1,3 @@
-import colorImg from '@/src/assets/color.png';
-import depthImg from '@/src/assets/depth.png';
 import { useRef, useEffect, useState } from 'react';
 
 interface Splat {
@@ -18,7 +16,7 @@ interface Drop {
   speed: number;
 }
 
-export function PaintDripRevealCard({ bottomImage = colorImg }: { bottomImage?: string }) {
+export function PaintDripRevealCard({ bottomImage = "/color.png" }: { bottomImage?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -27,7 +25,7 @@ export function PaintDripRevealCard({ bottomImage = colorImg }: { bottomImage?: 
   const splattersRef = useRef<Splat[]>([]);
   const animationRef = useRef<number | null>(null);
 
-  const topImage = depthImg;
+  const topImage = "/depth.png";
 
   // Perfectly aligns canvas drawing with CSS object-fit: cover
   const drawImageCover = (ctx: CanvasRenderingContext2D, img: HTMLImageElement, cw: number, ch: number) => {
@@ -121,6 +119,7 @@ export function PaintDripRevealCard({ bottomImage = colorImg }: { bottomImage?: 
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     
     img.src = topImage;
     img.onload = () => {
