@@ -19,12 +19,12 @@ export function OpticalLensCard({ bottomImage = "/color.png" }: { bottomImage?: 
     container.appendChild(renderer.domElement);
 
     const loader = new THREE.TextureLoader();
-    const texBase = loader.load("/depth.png", (t) => {
+    const texBase = loader.load("/depth.png");
+    const texReveal = loader.load(bottomImage, (t) => {
         if (t.image && t.image.width) {
             material.uniforms.uImageResolution.value.set(t.image.width, t.image.height);
         }
     });
-    const texReveal = loader.load(bottomImage);
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
