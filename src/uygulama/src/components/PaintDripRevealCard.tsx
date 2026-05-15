@@ -119,8 +119,7 @@ export function PaintDripRevealCard({ bottomImage = "/color.png" }: { bottomImag
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
-    
+        
     img.src = topImage;
     img.onload = () => {
       imageRef.current = img;

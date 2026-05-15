@@ -62,8 +62,7 @@ export function BrushRevealCard({ bottomImage = "/color.png" }: { bottomImage?: 
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
-    
+        
     img.src = topImage;
     img.onload = () => {
       imageRef.current = img;

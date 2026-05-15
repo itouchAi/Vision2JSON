@@ -30,7 +30,7 @@ export function DepthMapCard({ imageSrc, depthMapSrc, className = "", intensity 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    const textureLoader = new THREE.TextureLoader().setCrossOrigin('anonymous');
+    const textureLoader = new THREE.TextureLoader();
     
     // Convert FOV to radians to calculate correct plane size at Z=0
     const vFov = (camera.fov * Math.PI) / 180;

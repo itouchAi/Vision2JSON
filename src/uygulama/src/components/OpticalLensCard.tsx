@@ -18,7 +18,7 @@ export function OpticalLensCard({ bottomImage = "/color.png" }: { bottomImage?: 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // High-res for crisp glass
     container.appendChild(renderer.domElement);
 
-    const loader = new THREE.TextureLoader().setCrossOrigin('anonymous');
+    const loader = new THREE.TextureLoader();
     const texBase = loader.load("/depth.png", (t) => {
         if (t.image && t.image.width) {
             material.uniforms.uImageResolution.value.set(t.image.width, t.image.height);
