@@ -59,6 +59,8 @@ export function BrushRevealCard({ bottomImage = "/color.png" }: { bottomImage?: 
     };
 
     handleResize();
+    const ro = new ResizeObserver(() => handleResize());
+    ro.observe(container);
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
@@ -69,7 +71,10 @@ export function BrushRevealCard({ bottomImage = "/color.png" }: { bottomImage?: 
       resetCanvas();
     };
 
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const getCanvasCoords = (e: React.MouseEvent) => {

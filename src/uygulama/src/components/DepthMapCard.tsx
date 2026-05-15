@@ -106,6 +106,8 @@ export function DepthMapCard({ imageSrc, depthMapSrc, className = "", intensity 
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     };
+    const ro = new ResizeObserver(() => handleResize());
+    ro.observe(container);
     window.addEventListener('resize', handleResize);
 
     // Handle Mouse Flow
@@ -149,6 +151,7 @@ export function DepthMapCard({ imageSrc, depthMapSrc, className = "", intensity 
     render();
 
     return () => {
+      ro.disconnect();
       window.removeEventListener('resize', handleResize);
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);

@@ -44,6 +44,10 @@ export default function App() {
 
   // Parallax transform for hero background
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const isLandscape = imageAspect && imageAspect > 1.2;
+  const gridClass = isLandscape ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-2" : "grid-cols-1 md:grid-cols-3";
+  const heroCardClass = isLandscape ? "md:col-span-12 lg:col-span-6" : "md:col-span-4";
+  const heroTextClass = isLandscape ? "md:col-span-12 lg:col-span-12" : "md:col-span-4";
 
   return (
     <div ref={containerRef} className="font-sans antialiased bg-bg text-text-primary selection:bg-accent selection:text-black">
@@ -145,7 +149,7 @@ export default function App() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
           
           {/* Main Statement */}
-          <div className="bento-card md:col-span-4 flex flex-col justify-center bg-zinc-900/30">
+          <div className={`bento-card ${heroTextClass} flex flex-col justify-center bg-zinc-900/30`}>
             <KineticText 
               text="CRAFTING EXPERIENCES" 
               className="font-display text-4xl md:text-5xl leading-[1] font-bold tracking-tight mb-2"
@@ -169,7 +173,7 @@ export default function App() {
           </div>
 
           {/* AI Depth Map Parallax Card */}
-          <div className="bento-card md:col-span-4 p-0 overflow-hidden relative bg-zinc-900 border border-zinc-800" style={{ aspectRatio: imageAspect || (4/5) }}>
+          <div className={`bento-card ${heroCardClass} p-0 overflow-hidden relative bg-zinc-900 border border-zinc-800`} style={{ aspectRatio: imageAspect || (4/5) }}>
              <DepthMapCard 
                imageSrc={revealImageSrc}
                depthMapSrc="/depth.png"
@@ -189,7 +193,7 @@ export default function App() {
           </div>
 
           {/* Parallax Card Space */}
-          <div className="bento-card md:col-span-4 p-0 overflow-hidden relative" style={{ aspectRatio: imageAspect || (4/5) }}>
+          <div className={`bento-card ${heroCardClass} p-0 overflow-hidden relative`} style={{ aspectRatio: imageAspect || (4/5) }}>
              {/* 2.5D Parallax Demo Box */}
              <ParallaxCard 
                bgSrc="/arkaplan.jpg"
@@ -214,10 +218,10 @@ export default function App() {
 
       {/* Experimental Features Section */}
       <section className="w-full px-4 md:px-6 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+        <div className={`grid ${gridClass} gap-4 items-stretch`}>
           
           {/* Slot 1: X-Ray Reveal (Scanner) */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header - Fixed height to guarantee spacing */}
             <div className="h-8 flex justify-end items-center px-3 flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -233,7 +237,7 @@ export default function App() {
             </div>
             
             {/* Image Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border bg-zinc-900 pointer-events-auto">
+            <div className="relative w-full rounded-[16px] overflow-hidden border border-border bg-zinc-900 pointer-events-auto" style={{ aspectRatio: imageAspect || (3/4) }}>
               <XRayRevealCard 
                 topImage="/depth.png" 
                 bottomImage={revealImageSrc} 
@@ -245,7 +249,7 @@ export default function App() {
           </div>
 
           {/* Slot 2: Watercolor / Eraser Reveal */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_02</span>
@@ -253,7 +257,7 @@ export default function App() {
             </div>
             
             {/* Component Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden">
+            <div className="relative w-full rounded-[16px] overflow-hidden" style={{ aspectRatio: imageAspect || (3/4) }}>
                <BrushRevealCard bottomImage={revealImageSrc} />
             </div>
 
@@ -265,7 +269,7 @@ export default function App() {
           </div>
 
           {/* Slot 3: WebGL Liquid Glitch */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_03</span>
@@ -273,7 +277,7 @@ export default function App() {
             </div>
             
             {/* Component Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border bg-black">
+            <div className="relative w-full rounded-[16px] overflow-hidden border border-border bg-black" style={{ aspectRatio: imageAspect || (3/4) }}>
                <LiquidGlitchCard bottomImage={revealImageSrc} />
             </div>
 
@@ -289,10 +293,10 @@ export default function App() {
 
       {/* Row 2: Secondary Experiments */}
       <section className="w-full px-4 md:px-6 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+        <div className={`grid ${gridClass} gap-4 items-stretch`}>
           
           {/* Slot 4: Paint Drip / Ink Splatter Reveal */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_04</span>
@@ -300,7 +304,7 @@ export default function App() {
             </div>
             
             {/* Component Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border">
+            <div className="relative w-full rounded-[16px] overflow-hidden border border-border" style={{ aspectRatio: imageAspect || (3/4) }}>
                <PaintDripRevealCard bottomImage={revealImageSrc} />
             </div>
 
@@ -312,7 +316,7 @@ export default function App() {
           </div>
 
           {/* Slot 5: Paper Tear Reveal */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_05</span>
@@ -320,7 +324,7 @@ export default function App() {
             </div>
             
             {/* Component Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border">
+            <div className="relative w-full rounded-[16px] overflow-hidden border border-border" style={{ aspectRatio: imageAspect || (3/4) }}>
                <PaperTearCard bottomImage={revealImageSrc} />
             </div>
 
@@ -332,7 +336,7 @@ export default function App() {
           </div>
 
           {/* Slot 6: Optical Refraction Lens */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_06</span>
@@ -340,7 +344,7 @@ export default function App() {
             </div>
             
             {/* Component Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border">
+            <div className="relative w-full rounded-[16px] overflow-hidden border border-border" style={{ aspectRatio: imageAspect || (3/4) }}>
                <OpticalLensCard bottomImage={revealImageSrc} />
             </div>
 
@@ -356,10 +360,10 @@ export default function App() {
 
       {/* Row 3: Tertiary Experiments */}
       <section className="w-full px-4 md:px-6 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+        <div className={`grid ${gridClass} gap-4 items-stretch`}>
           
           {/* Slot 7: Fire Reveal */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_07</span>
@@ -367,7 +371,7 @@ export default function App() {
             </div>
             
             {/* Component Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border">
+            <div className="relative w-full rounded-[16px] overflow-hidden border border-border" style={{ aspectRatio: imageAspect || (3/4) }}>
                <FireRevealCard bottomImage={revealImageSrc} />
             </div>
 
@@ -379,7 +383,7 @@ export default function App() {
           </div>
 
           {/* Slot 8: Ice Shatter */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_08</span>
@@ -387,7 +391,7 @@ export default function App() {
             </div>
             
             {/* Component Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border">
+            <div className="relative w-full rounded-[16px] overflow-hidden border border-border" style={{ aspectRatio: imageAspect || (3/4) }}>
                <IceShatterCard bottomImage={revealImageSrc} />
             </div>
 
@@ -399,7 +403,7 @@ export default function App() {
           </div>
 
           {/* Slot 9: Chaos Mode */}
-          <div className="bento-card p-3 flex flex-col relative" style={{ aspectRatio: imageAspect || (3/4) }}>
+          <div className="bento-card p-3 flex flex-col relative w-full h-full">
             {/* Top Header */}
             <div className="h-8 flex justify-between items-center px-3 flex-shrink-0">
                <span className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded">EXP_09</span>
@@ -407,7 +411,7 @@ export default function App() {
             </div>
             
             {/* Component Container */}
-            <div className="relative w-full flex-grow rounded-[16px] overflow-hidden border border-border outline outline-1 outline-accent/30 shadow-[0_0_20px_rgba(200,250,5,0.1)]">
+            <div className="relative w-full rounded-[16px] overflow-hidden border border-border outline outline-1 outline-accent/30 shadow-[0_0_20px_rgba(200,250,5,0.1)]" style={{ aspectRatio: imageAspect || (3/4) }}>
                <ChaosCard bottomImage={revealImageSrc} />
             </div>
 

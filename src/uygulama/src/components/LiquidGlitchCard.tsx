@@ -126,6 +126,8 @@ export function LiquidGlitchCard({ bottomImage = "/color.png" }: { bottomImage?:
       renderer.setSize(container.clientWidth, container.clientHeight);
       material.uniforms.uResolution.value.set(container.clientWidth, container.clientHeight, 1, 1);
     };
+    const ro = new ResizeObserver(() => onResize());
+    ro.observe(container);
     window.addEventListener('resize', onResize);
 
     // Animation Loop
@@ -176,6 +178,7 @@ export function LiquidGlitchCard({ bottomImage = "/color.png" }: { bottomImage?:
     // Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
+      ro.disconnect();
       window.removeEventListener('resize', onResize);
       container.removeEventListener('mousemove', onMouseMove);
       container.removeEventListener('mouseenter', onMouseEnter);

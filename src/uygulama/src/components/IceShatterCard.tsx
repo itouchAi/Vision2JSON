@@ -144,9 +144,12 @@ export function IceShatterCard({ bottomImage = "/color.png" }: { bottomImage?: s
       handleResize();
     };
 
+    const ro = new ResizeObserver(() => handleResize());
+    ro.observe(container);
     window.addEventListener('resize', handleResize);
 
     return () => {
+      ro.disconnect();
       window.removeEventListener('resize', handleResize);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };

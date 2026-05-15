@@ -116,6 +116,8 @@ export function PaintDripRevealCard({ bottomImage = "/color.png" }: { bottomImag
     };
 
     handleResize();
+    const ro = new ResizeObserver(() => handleResize());
+    ro.observe(container);
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
@@ -127,6 +129,7 @@ export function PaintDripRevealCard({ bottomImage = "/color.png" }: { bottomImag
     };
 
     return () => {
+      ro.disconnect();
       window.removeEventListener('resize', handleResize);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };

@@ -109,6 +109,8 @@ export function PaperTearCard({ bottomImage = "/color.png" }: { bottomImage?: st
     };
 
     handleResize();
+    const ro = new ResizeObserver(() => handleResize());
+    ro.observe(container);
     window.addEventListener('resize', handleResize);
 
     const img = new Image();
@@ -119,7 +121,10 @@ export function PaperTearCard({ bottomImage = "/color.png" }: { bottomImage?: st
       resetCanvases();
     };
 
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const getCanvasCoords = (e: React.MouseEvent) => {
